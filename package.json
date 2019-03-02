@@ -1,0 +1,24 @@
+{
+  "name": "graphql-bootcamp",
+  "version": "1.0.0",
+  "description": "GraphQL Bootcamp with Andrew Mead @ Udemy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eaverdeja/graphql-bootcamp.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "Andrew",
+    "Mead"
+  ],
+  "author": "Eduardo Verdeja <eaverdeja@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eaverdeja/graphql-bootcamp/issues"
+  },
+  "homepage": "https://github.com/eaverdeja/graphql-bootcamp#readme"
+}
