@@ -13,11 +13,10 @@ Eventually I'll collect all (or most of the) tools used in the course in this li
 - babel
 - graphql yoga
 - prisma
+  - prisma-binding
 - graphql playground
+- graphql cli
 
-  name: String!
-  posts: [Post!]!
-  comments: [Comment!]!
 ## Modules
 
 The course is outlined in a few different modules. I'll stick to the same separation whenever possible throughout this `README`
@@ -204,7 +203,7 @@ mutation {
   }
 }
 ```
-Here we're creating a comment while connecting it to an existing user and an existing post. I was surprised to see that the `email` field on the `User` type was added as an option to `connect` other than the id, seeing as it used the `@unique` directive in the datamodel definition:
+Here we're **creating a comment** while connecting it to an **existing user** and an **existing post**. I was surprised to see that the `email` field on the `User` type was added as an option to `connect` other than the id, seeing as it used the `@unique` directive in the datamodel definition:
 
 ```graphql
 type User {
