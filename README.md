@@ -514,3 +514,26 @@ const createPostForUser = async (authorId, data) => {
 }
 ```
 
+###### @relation
+
+The `@relation` directive customizes the database behaviour when a determined record is deleted. Related records need to be kept or deleted, depending on bussiness needs. Prisma offers two behaviour types: `SET_NULL` and `CASCADE`. For our datamodel, the following config probably makes the most sense:
+
+```graphql
+type User {
+  ...
+  posts: [Post!]! @relation(name: "PostToUser", onDelete: CASCADE)
+  comments: [Comment!]! @relation(name: "CommentToUser", onDelete: CASCADE)
+}
+
+type Post {
+  ...
+  author: User! @relation(name: "PostToUser", onDelete: SET_NULL)
+  comments: [Comment!]! @relation(name: "CommentToPost", onDelete: CASCADE)
+} 
+
+type Comment {
+  ...
+  author: User! @relation(name: "CommentToUser", onDelete: SET_NULL)
+  post: Post! @relation(name: "CommentToPost", onDelete: SET_NULL)
+}
+```
