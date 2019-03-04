@@ -1,0 +1,8 @@
+projects:
+  graphql-bootcamp:
+    schemaPath: 'src/generated/schema.graphql'
+    extensions:
+      endpoints:
+        default:
+          url: 'http://localhost:4466'
+          subscription: 'ws://localhost:4466'
