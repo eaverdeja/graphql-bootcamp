@@ -397,6 +397,56 @@ prisma.mutation
 ]
 ```
 
+We could also do the above with `async/await`:
+
+```javascript
+
+const runPrisma = async () => {
+  const newPost = await prisma.mutation.createPost(
+    {
+      data: {
+        title: 'A post created with the prisma-node binding!',
+        body: 'like.. wow',
+        published: false,
+        author: {
+          connect: {
+            id: 'cjsuf0o3i00hy07906x376r0b'
+          }
+        }
+      }
+    },
+    '{ id title body published }'
+  )
+
+  prettyLog(newPost)
+
+  const updatedPost = await prisma.mutation.updatePost({
+    where: {
+      id: newPost.id
+    },
+    data: {
+      published: true,
+      body: 'Some ~killer~ description'
+    }
+  })
+
+  const allPosts = await prisma.query.posts(
+    null,
+    `
+      {
+          id
+          body
+          published
+      }
+    `
+  )
+
+  prettyLog(allPosts)
+}
+
+runPrisma()
+```
+
 > Note: prettyLog() is quite simple:
 ```javascript
 export const prettyLog = data => {
