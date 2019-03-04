@@ -10,21 +10,21 @@ import Comment from './resolvers/Comment'
 const pubsub = new PubSub()
 
 const server = new GraphQLServer({
-    typeDefs: './src/schema.graphql',
-    resolvers: {
-        Query,
-        Mutation,
-        Subscription,
-        User,
-        Post,
-        Comment
-    },
-    context: {
-        db,
-        pubsub
-    }
+  typeDefs: './src/schema.graphql',
+  resolvers: {
+    Query,
+    Mutation,
+    Subscription,
+    User,
+    Post,
+    Comment,
+  },
+  context: {
+    db,
+    pubsub,
+  },
 })
 
 server.start(() => {
-    console.log('The server is up!')
+  console.log('The server is up!')
 })
