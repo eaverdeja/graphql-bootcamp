@@ -238,6 +238,8 @@ input UserWhereUniqueInput {
 
 The `prisma-binding` library gives us an API to use Prisma with Node.js. After setting up the Prisma client using the factory exported from `prisma-binding`, we can use the created object for interacting with our Prisma API:
 
+###### Queries
+
 ```javascript
 
 // Fetching users with information about their
@@ -330,6 +332,8 @@ prisma.query
 
 ```
 
+###### Mutations
+
 Similarly, we can do use the client for executing mutations:
 
 ```javascript
@@ -397,6 +401,8 @@ prisma.mutation
 ]
 ```
 
+###### Async / Await
+
 We could also do the above with `async/await`:
 
 ```javascript
@@ -456,3 +462,55 @@ export const prettyLog = data => {
     return Promise.resolve(data)
 }
 ```
+
+###### Exists
+
+We can use the `exists` binding to check if a certain instance of a type exists:
+
+```javascript
+prisma.exists
+  .Comment({
+    id: 'cjsuf0of900hz0790137xt91r'
+  })
+  .then(prettyLog) // bool
+```
+
+We can use any attribute from our model for the search criteria:
+
+```javascript
+prisma.exists
+  .Post({
+    published: true
+  })
+  .then(prettyLog) // bool
+```
+
+Using the `exists` property, we can build error workflows before actually calling mutations:
+
+```javascript
+const createPostForUser = async (authorId, data) => {
+  const userExists = await prisma.exists.User({
+    id: authorId
+  })
+
+  if (!userExists) {
+    throw new Error('User not found!')
+  }
+
+  const { author: user } = await prisma.mutation.createPost(
+    {
+      data: {
+        author: {
+          connect: {
+            id: authorId
+          }
+        },
+        ...data
+      }
+    },
+    '{ author {id name email posts { id title published } } }'
+  )
+  return user
+}
+```
+
