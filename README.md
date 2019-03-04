@@ -233,3 +233,176 @@ input UserWhereUniqueInput {
   email: String
 }
 ```
+
+##### Prisma binding
+
+The `prisma-binding` library gives us an API to use Prisma with Node.js. After setting up the Prisma client using the factory exported from `prisma-binding`, we can use the created object for interacting with our Prisma API:
+
+```javascript
+
+// Fetching users with information about their
+// posts and comments from our API
+prisma.query
+    .users(
+        null,
+        `
+        {
+            id
+            name
+            email
+            posts {
+                id
+                title
+            }
+            comments {
+                text
+                post {
+                    id
+                }
+            }
+        }
+    `
+    )
+    .then(prettyLog)
+
+// Fetching comments with information about their
+// authors from our API
+prisma.query
+    .comments(
+        null,
+        `
+            {
+                id
+                text
+                author {
+                    id
+                    name
+                }
+            }
+        `
+    )
+    .then(prettyLog)
+```
+
+`prettyLog()` gives us the following ouput:
+
+```json
+// prettyLog() with the result of query.users()
+[
+   {
+      "id": "cjsuc6hew0enq0790gzcmxel5",
+      "name": "Bob",
+      "email": "bob@gmail.com",
+      "posts": []
+   },
+   {
+      "id": "cjsuf0o3i00hy07906x376r0b",
+      "name": "Jack",
+      "email": "jack@gmail.com",
+      "posts": [
+         {
+            "id": "cjsurame5001x07905emg5yrc",
+            "title": "A post created with the prisma-node binding!"
+         }
+      ]
+   }
+]
+
+// prettyLog() with the result of query.comments()
+[
+   {
+      "id": "cjsuf0of900hz0790137xt91r",
+      "text": "Creating a new user with a nested comment on an existing post!",
+      "author": {
+         "id": "cjsuf0o3i00hy07906x376r0b",
+         "name": "Jack"
+      }
+   },
+   {
+      "id": "cjsugr1vk01n20790u8f5qoi1",
+      "text": "Creating a comment for an existing user on an existing post!",
+      "author": {
+         "id": "cjsuf0o3i00hy07906x376r0b",
+         "name": "Jack"
+      }
+   }
+]
+
+```
+
+Similarly, we can do use the client for executing mutations:
+
+```javascript
+prisma.mutation
+    .createPost(
+        {
+            data: {
+                title: 'A post created with the prisma-node binding!',
+                body: 'like.. wow',
+                published: false,
+                author: {
+                    connect: {
+                        id: 'cjsuf0o3i00hy07906x376r0b'
+                    }
+                }
+            }
+        },
+        '{ id title body published }'
+    )
+    .then(prettyLog)
+    .then(data =>
+        prisma.mutation.updatePost({
+            where: {
+                id: data.id
+            },
+            data: {
+                published: true,
+                body: 'Some ~killer~ description'
+            }
+        })
+    )
+    .then(data =>
+        prisma.query.posts(
+            null,
+            `
+                {
+                    id
+                    body
+                    published
+                }
+            `
+        )
+    )
+    .then(prettyLog)
+```
+
+`prettyLog()` gives us the following ouput:
+
+```json
+// prettyLog() with the result of mutation.createPost()
+{
+   "id": "cjsurame5001x07905emg5yrc",
+   "title": "A post created with the prisma-node binding!",
+   "body": "like.. wow",
+   "published": false
+}
+
+// prettyLog with the result from query.posts() after calling mutation.updatePost()
+[
+   {
+      "id": "cjsurame5001x07905emg5yrc",
+      "body": "Some ~killer~ description",
+      "published": true
+   }
+]
+```
+
+> Note: prettyLog() is quite simple:
+```javascript
+export const prettyLog = data => {
+    console.log(JSON.stringify(data, null, 3))
+
+    // Keep the ability to continue on the promise chain
+    return Promise.resolve(data)
+}
+```
