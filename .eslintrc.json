@@ -1,6 +1,10 @@
 {
-    "extends": "airbnb-base",
-    "rules": {
-        "semi": "off"
-    }
+  "extends": "airbnb-base",
+  "rules": {
+    "semi": "off",
+    "linebreak-style": "off",
+    "no-unused-vars": "off",
+    "no-param-reassign": "off",
+    "import/prefer-default-export": "off"
+  }
 }
