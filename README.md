@@ -537,3 +537,236 @@ type Comment {
   post: Post! @relation(name: "CommentToPost", onDelete: SET_NULL)
 }
 ```
+
+##### Challenge - Modeling a review system
+
+Andrew proposed that a review system for *something* should be modeled separate from our blog model. I chose memes.
+
+It is possible to configure multiple *prisma services* using the same docker service. A separate schema is created in the postgres database and a new endpoint is made available after editing both the `prisma.yml` and `.graphqlconfig.yaml` files.
+
+After the setup, a small exercise was proposed, where 2 users should be created and both of them should review a single meme. One of the users should be deleted and the reviews should also get deleted automatically given the use of `@relation (..., onDelete: CASCADE)`.
+
+The final snippet was looking like this:
+
+```graphql
+type User {
+  id: ID! @unique
+  name: String!
+  email: String! @unique
+  reviews: [Review!]! @relation(name: "ReviewToUser", onDelete: CASCADE)
+}
+
+type Meme {
+  id: ID! @unique
+  url: String!
+  description: String!
+  notSafeForWork: Boolean!
+  reviews: [Review!]! @relation(name: "MemeToReviews", onDelete: CASCADE)
+} 
+
+type Review {
+  id: ID! @unique
+  score: Float!
+  reviewer: User! @relation(name: "ReviewToUser", onDelete: SET_NULL)
+  meme: Meme! @relation(name: "ReviewToMeme", onDelete: SET_NULL)
+}
+```
+
+```javascript
+import { Prisma } from 'prisma-binding'
+import { prettyLog } from './utils'
+
+const prisma = new Prisma({
+  typeDefs: 'src/generated/schema.graphql',
+  endpoint: 'http://localhost:4466/reviews/default'
+})
+
+const truncateTables = async () => {
+  // No ID would ever match 'xxx'
+  const deleteAll = {
+    where: {
+      id_not: 'xxx'
+    }
+  }
+
+  // Order is important here!
+  const mutations = [
+    prisma.mutation.deleteManyReviews,
+    prisma.mutation.deleteManyMemes,
+    prisma.mutation.deleteManyUsers
+  ]
+  
+  for (const mutation of mutations) {
+    // We need to respect the
+    // foreign key structures
+    /* eslint-disable no-await-in-loop */
+    await mutation.call(null, deleteAll)
+  }
+}
+
+const run = async () => {
+  try {
+    await truncateTables()
+
+    // Creating 2 users
+    const user = await prisma.mutation.createUser(
+      {
+        data: {
+          name: 'John',
+          email: "John's email"
+        }
+      },
+      '{ id name email }'
+    )
+    const user2 = await prisma.mutation.createUser(
+      {
+        data: {
+          name: 'Jack',
+          email: "Jack's email"
+        }
+      },
+      '{ id name email }'
+    )
+    const chosenUser = user
+
+    // Creating a meme for review
+    const meme = await prisma.mutation.createMeme(
+      {
+        data: {
+          description: 'Dem Legs',
+          url:
+            'https://www.memedroid.com/memes/detail/2152162?refGallery=random&page=1',
+          notSafeForWork: false
+        }
+      },
+      '{ id description url notSafeForWork }'
+    )
+
+    prettyLog(meme, 'Meme')
+
+    // Create a review for the meme
+    const review = await prisma.mutation.createReview(
+      {
+        data: {
+          score: 7,
+          reviewer: {
+            connect: {
+              id: user.id
+            }
+          },
+          meme: {
+            connect: {
+              id: meme.id
+            }
+          }
+        }
+      },
+      '{ score reviewer { name } meme { description } }'
+    )
+    const review2 = await prisma.mutation.createReview(
+      {
+        data: {
+          score: 8,
+          reviewer: {
+            connect: {
+              id: user2.id
+            }
+          },
+          meme: {
+            connect: {
+              id: meme.id
+            }
+          }
+        }
+      },
+      '{ score reviewer { name } meme { description } }'
+    )
+
+    prettyLog(review, "John's review")
+    prettyLog(review2, "Jack's review")
+
+    // Delete the user
+    console.log(`Deleting ${chosenUser.name}!`)
+    await prisma.mutation.deleteUser({
+      where: {
+        id: chosenUser.id
+      }
+    })
+
+    // Make sure the user's reviews were deleted
+    const reviews = await prisma.query.reviews(
+      null,
+      `
+      {
+        id
+        score
+      }
+    `
+    )
+    prettyLog(reviews, 'All reviews')
+
+    console.log(`Checking if ${chosenUser.name} still has reviews`)
+    const userHasReviews = async userId =>
+      prisma.exists.Review({
+        reviewer: {
+          id: userId
+        }
+      })
+    if (await userHasReviews(chosenUser.id)) {
+      throw new Error(
+        `The reviews for ${chosenUser.name} should have been deleted!`
+      )
+    } else {
+      console.log('All is good!')
+    }
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+run()
+
+export default prisma
+```
+
+The console output looks like this:
+
+```json
+Meme
+  {
+     "id": "cjsv2v2hz03ph0790tzoq5md1",
+     "description": "Dem Legs",
+     "url": "https://www.memedroid.com/memes/detail/2152162?refGallery=random&page=1",
+     "notSafeForWork": false
+  }
+John's review
+  {
+     "score": 7,
+     "reviewer": {
+        "name": "John"
+     },
+     "meme": {
+        "description": "Dem Legs"
+     }
+  }
+Jack's review
+  {
+     "score": 8,
+     "reviewer": {
+        "name": "Jack"
+     },
+     "meme": {
+        "description": "Dem Legs"
+     }
+  }
+Deleting John!
+All reviews
+  [
+     {
+        "id": "cjsv2v3yd03px0790zk9k2uev",
+        "score": 8
+     }
+  ]
+Checking if John still has reviews
+All is good!
+```
