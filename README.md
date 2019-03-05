@@ -798,6 +798,8 @@ All is good!
 
 ##### Using the binding in our API
 
+###### Simple query
+
 Using `prisma-binding`, a typical resolver could look something like this:
 
 ```javascript
@@ -807,3 +809,58 @@ users(parent, args, { prisma }, info) {
 ```
 
 The first argument is `null` because we have no **operation arguments**. In other words, the client can't modify the behaviour of this query by passing in `args`. The second argument should have the desired **selection set**. In the examples above, we hardcoded the selection set as the second argument. **Given that our clients are now in control of the incoming queries**, we leverage the `info` argument as the second parameter to our query. That ensures we fetch the fields asked for by the client!
+
+###### Using args and filters
+
+Using the arguments given to us by our clients is pretty straighforward:
+
+```javascript
+users(parent, args, { prisma }, info) {
+  const opArgs = {}
+
+  if(args.query) {
+    opArgs.where = {
+      name_contains: args.query
+    }
+  }
+
+  return prisma.query.users(opArgs, info)
+}
+```
+
+The `name_contains` property comes from our generated API. Each field in a model can be sorted in many different ways by the Prisma API. Just for the `name` field (a `String`) we get the following filters out of the box:
+
+```graphql
+type UserWhereInput {
+  AND: [UserWhereInput!]
+  OR: [UserWhereInput!]
+  NOT: [UserWhereInput!]
+
+  ...
+
+  name: String
+  name_not: String
+  name_in: [String!]
+  name_not_in: [String!]
+  name_lt: String
+  name_lte: String
+  name_gt: String
+  name_gte: String
+  name_contains: String
+  name_not_contains: String
+  name_starts_with: String
+  name_not_starts_with: String
+  name_ends_with: String
+  name_not_ends_with: String
+}
+```
+
+The `AND`, `OR` and `NOT` properties can be used to construct conditional logic on our `opArgs` object:
+
+```javascript
+opArgs.where = {
+  OR: [{ name_contains: args.query }, { email_contains: args.query }]
+};
+```
+
+Matching the name **or** the email would be the resulting behaviour.
