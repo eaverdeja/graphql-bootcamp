@@ -2,7 +2,7 @@ module.exports = {
   client: {
     service: {
       name: 'graphql-bootcamp',
-      url: 'http://localhost:4466/reviews/default'
+      url: 'http://localhost:4466/'
     },
     includes: ['src/**/*.js'],
     excludes: ['src/generated/**', '*/**/datamodel.prisma']
