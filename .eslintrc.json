@@ -7,6 +7,7 @@
     "no-unused-vars": "off",
     "no-param-reassign": "off",
     "import/prefer-default-export": "off",
-    "max-len": ["error", {"code": 80, "ignoreUrls": true}]
+    "max-len": ["error", {"code": 80, "ignoreUrls": true}],
+    "no-restricted-syntax": [0, "ForInStatement", "ForOfStatement"]
   }
 }
