@@ -59,7 +59,9 @@ The course is outlined in a few different modules. I'll stick to the same separa
   - _The articles are in portuguese_
   - [Postgres & Docker](https://medium.com/@renato.groffe/postgresql-docker-executando-uma-inst%C3%A2ncia-e-o-pgadmin-4-a-partir-de-containers-ad783e85b1a4)
   - [Creating a docker-compose file for Postgres & PgAdmin4](https://medium.com/@renato.groffe/postgresql-pgadmin-4-docker-compose-montando-rapidamente-um-ambiente-para-uso-55a2ab230b89)
-  - The resulting compose file looks like this:
+
+<details><summary>The resulting compose file looks like this</summary>
+<p>
 
 ```yml
 version: "3"
@@ -113,6 +115,10 @@ networks:
   postgres-compose-network:
     driver: bridge
 ```
+</p>
+</details>
+
+---
 
 #### Prisma
 
@@ -133,6 +139,9 @@ Personally it seems like a good idea to strike balance between declarative and i
 ##### Nested mutations
 
 We can easily do cool stuff like the query below straight from GraphQL Playground:
+
+<details><summary>Nested mutation example</summary>
+<p>
 
 ```graphql
 mutation {
@@ -160,8 +169,15 @@ mutation {
   }
 }
 ```
+</p>
+</details>
+
+---
 
 Just by defining simple relations between the `User`, `Comment` and `Post` types, Prisma exposed some pretty handy **input types** (as in `createUser(data: {...}`). It looks like this:
+
+<details><summary>Generated schema</summary>
+<p>
 
 ```graphql
 input UserCreateInput {
@@ -190,10 +206,17 @@ input PostWhereUniqueInput {
   id: ID
 }
 ```
+</p>
+</details>
+
+---
 
 At the same time we are **creating a user**, we are **creating a comment** attached to an **existing post**. Having that kind of operation resumed in a query is very powerful for clients of the API. Sweet!
 
-These input types are available throughtout the API:
+These input types are available throughout the API:
+
+<details><summary>Nested mutation example 2</summary>
+<p>
 
 ```graphql
 mutation {
@@ -215,8 +238,15 @@ mutation {
   }
 }
 ```
+</p>
+</details>
+
+---
 
 Here we're **creating a comment** while connecting it to an **existing user** and an **existing post**. I was surprised to see that the `email` field on the `User` type was added as an option to `connect` other than the id, seeing as it used the `@unique` directive in the datamodel definition:
+
+<details><summary>Generated schema</summary>
+<p>
 
 ```graphql
 type User {
@@ -246,12 +276,19 @@ input UserWhereUniqueInput {
   email: String
 }
 ```
+</p>
+</details>
+
+---
 
 ##### Prisma binding
 
 The `prisma-binding` library gives us an API to use Prisma with Node.js. After setting up the Prisma client using the factory exported from `prisma-binding`, we can use the created object for interacting with our Prisma API:
 
 ###### Queries
+
+<details><summary>Querying for types and related types</summary>
+<p>
 
 ```javascript
 // Fetching users with information about their
@@ -297,8 +334,11 @@ prisma.query
   )
   .then(prettyLog);
 ```
+</p>
+</details>
 
-`prettyLog()` gives us the following ouput:
+<details><summary>prettyLog() gives us the following ouput</summary>
+<p>
 
 ```json
 // prettyLog() with the result of query.users()
@@ -341,9 +381,15 @@ prisma.query
 ]
 ```
 
+</p>
+</details>
+
+---
+
 ###### Mutations
 
-Similarly, we can do use the client for executing mutations:
+<details><summary>Similarly, we can do use the client for executing mutations</summary>
+<p>
 
 ```javascript
 prisma.mutation
@@ -378,18 +424,22 @@ prisma.mutation
     prisma.query.posts(
       null,
       `
-                {
-                    id
-                    body
-                    published
-                }
-            `
+        {
+            id
+            body
+            published
+        }
+      `
     )
   )
   .then(prettyLog);
 ```
+</p>
+</details>
 
-`prettyLog()` gives us the following ouput:
+<details><summary>
+prettyLog() gives us the following output</summary>
+<p>
 
 ```json
 // prettyLog() with the result of mutation.createPost()
@@ -407,10 +457,15 @@ prisma.mutation
   }
 ]
 ```
+</p>
+</details>
+
+---
 
 ###### Async / Await
 
-We could also do the above with `async/await`:
+<details><summary>We could also do the above with `async/await`</summary>
+<p>
 
 ```javascript
 const runPrisma = async () => {
@@ -458,8 +513,13 @@ const runPrisma = async () => {
 
 runPrisma();
 ```
+</p>
+</details>
 
-> Note: prettyLog() is quite simple:
+---
+
+<details><summary>prettyLog() is quite simple</summary>
+<p>
 
 ```javascript
 export const prettyLog = data => {
@@ -469,10 +529,15 @@ export const prettyLog = data => {
   return Promise.resolve(data);
 };
 ```
+</p>
+</details>
+
+---
 
 ###### Exists
 
-We can use the `exists` binding to check if a certain instance of a type exists:
+<details><summary>We can use the `exists` binding to check if a certain instance of a type exists</summary>
+<p>
 
 ```javascript
 prisma.exists
@@ -481,8 +546,14 @@ prisma.exists
   })
   .then(prettyLog); // bool
 ```
+</p>
+</details>
 
-We can use any attribute from our model for the search criteria:
+---
+
+<details><summary>
+We can use any attribute from our model for the search criteria</summary>
+<p>
 
 ```javascript
 prisma.exists
@@ -491,8 +562,13 @@ prisma.exists
   })
   .then(prettyLog); // bool
 ```
+</p>
+</details>
 
-Using the `exists` property, we can build error workflows before actually calling mutations:
+---
+
+<details><summary>Using the `exists` property, we can build error workflows before actually calling mutations</summary>
+<p>
 
 ```javascript
 const createPostForUser = async (authorId, data) => {
@@ -520,10 +596,17 @@ const createPostForUser = async (authorId, data) => {
   return user;
 };
 ```
+</p>
+</details>
+
+---
 
 ###### @relation
 
-The `@relation` directive customizes the database behaviour when a determined record is deleted. Related records need to be kept or deleted, depending on bussiness needs. Prisma offers two behaviour types: `SET_NULL` and `CASCADE`. For our datamodel, the following config probably makes the most sense:
+The `@relation` directive customizes the database behaviour when a determined record is deleted. Related records need to be kept or deleted, depending on bussiness needs. Prisma offers two behaviour types: `SET_NULL` and `CASCADE`. 
+
+<details><summary>For our datamodel, the following config probably makes the most sense</summary>
+<p>
 
 ```graphql
 type User {
@@ -544,6 +627,10 @@ type Comment {
   post: Post! @relation(name: "CommentToPost", onDelete: SET_NULL)
 }
 ```
+</p>
+</details>
+
+---
 
 #### Challenge - Modeling a review system
 
@@ -554,6 +641,9 @@ It is possible to configure multiple _prisma services_ using the same docker ser
 After the setup, a small exercise was proposed, where 2 users should be created and both of them should review a single meme. One of the users should be deleted and the reviews should also get deleted automatically given the use of `@relation (..., onDelete: CASCADE)`.
 
 The final snippet was looking like this:
+
+<details><summary>schema.graphql</summary>
+<p>
 
 ```graphql
 type User {
@@ -578,6 +668,13 @@ type Review {
   meme: Meme! @relation(name: "ReviewToMeme", onDelete: SET_NULL)
 }
 ```
+</p>
+</details>
+
+---
+
+<details><summary>prisma.js</summary>
+<p>
 
 ```javascript
 import { Prisma } from "prisma-binding";
@@ -750,8 +847,14 @@ run();
 
 export default prisma;
 ```
+</p>
+</details>
 
-The console output looks like this:
+---
+
+<details><summary>
+The console output looks like this</summary>
+<p>
 
 ```json
 Meme
@@ -795,24 +898,35 @@ Deleting Dem Legs!
 Checking if Dem Legs still has reviews
 All is good!
 ```
+</p>
+</details>
+
+---
 
 ##### Using the binding in our API
 
 ###### Simple query
 
-Using `prisma-binding`, a typical resolver could look something like this:
+<details><summary>Using `prisma-binding`, a typical resolver could look something like this</summary>
+<p>
 
 ```javascript
 users(parent, args, { prisma }, info) {
   return prisma.query.users(null, info)
 }
 ```
+</p>
+</details>
 
-The first argument is `null` because we have no **operation arguments**. In other words, the client can't modify the behaviour of this query by passing in `args`. The second argument should have the desired **selection set**. In the examples above, we hardcoded the selection set as the second argument. **Given that our clients are now in control of the incoming queries**, we leverage the `info` argument as the second parameter to our query. That ensures we fetch the fields asked for by the client!
+---
+
+The first argument is `null` because we have no **operation arguments**. In other words, the client can't modify the behaviour of this query by passing in `args`. The second argument should have the desired **selection set**. In the examples above, we hardcoded the selection set as the second argument. **Given that our clients are now in control of the incoming queries**, we leverage the `info` argument as the second parameter to our query. That ensures we fetch the fields asked for by the client! [After all, the desired selection set is right there on the info object](https://www.prisma.io/blog/graphql-server-basics-demystifying-the-info-argument-in-graphql-resolvers-6f26249f613a/)
 
 ###### Using args and filters
 
-Using the arguments given to us by our clients is pretty straighforward:
+<details><summary>
+Using the arguments given to us by our clients is pretty straighforward</summary>
+<p>
 
 ```javascript
 users(parent, args, { prisma }, info) {
@@ -827,8 +941,15 @@ users(parent, args, { prisma }, info) {
   return prisma.query.users(opArgs, info)
 }
 ```
+</p>
+</details>
 
-The `name_contains` property comes from our generated API. Each field in a model can be sorted in many different ways by the Prisma API. Just for the `name` field (a `String`) we get the following filters out of the box:
+---
+
+The `name_contains` property comes from our generated API. Each field in a model can be filtered in many different ways by the Prisma API.
+
+<details><summary>Just for the "name" field (a String) we get the following filters out of the box</summary>
+<p>
 
 ```graphql
 type UserWhereInput {
@@ -854,13 +975,231 @@ type UserWhereInput {
   name_not_ends_with: String
 }
 ```
+</p>
+</details>
 
-The `AND`, `OR` and `NOT` properties can be used to construct conditional logic on our `opArgs` object:
+---
+
+<details><summary>The AND, OR and NOT properties can be used to construct conditional logic on our opArgs object</summary>
+<p>
 
 ```javascript
 opArgs.where = {
   OR: [{ name_contains: args.query }, { email_contains: args.query }]
 };
 ```
+</p>
+</details>
+
+---
 
 Matching the name **or** the email would be the resulting behaviour.
+
+###### Mutations
+
+<details><summary>
+A resolver for the createUser mutation could look like this</summary>
+<p>
+
+```javascript
+async createUser(parent, { data }, { prisma }, info) {
+  const { email } = data
+  const isEmailTaken = await prisma.exists.User({ email })
+
+  if (isEmailTaken) {
+    throw new Error('Email taken')
+  }
+
+  return prisma.mutation.createUser({ data })
+}
+```
+</p>
+</details>
+
+---
+
+> In the above example, the `exists` check enables us to customize the error message. That's it. The "unique email" rule is already enforced at the database level because of the `@unique` directive.
+
+<details><summary>The whole Mutation.js file was refactored to</summary>
+<p>
+
+```javascript
+const Mutation = {
+  createUser(parent, { data }, { prisma }, info) {
+    return prisma.mutation.createUser({ data }, info)
+  },
+  deleteUser(parent, { id }, { prisma }, info) {
+    return prisma.mutation.deleteUser({ where: { id } }, info)
+  },
+  updateUser(parent, { id, data }, { prisma }, info) {
+    return prisma.mutation.updateUser({ where: { id }, data }, info)
+  },
+  createPost(parent, { data }, { prisma }, info) {
+    const { title, body, published, author } = data
+    return prisma.mutation.createPost(
+      {
+        data: {
+          title,
+          body,
+          published,
+          author: {
+            connect: {
+              id: author
+            }
+          }
+        }
+      },
+      info
+    )
+  },
+  deletePost(parent, { id }, { prisma }, info) {
+    return prisma.mutation.deletePost({ where: { id } }, info)
+  },
+  updatePost(parent, { id, data }, { prisma }, info) {
+    const { title, body, published } = data
+    return prisma.mutation.updatePost(
+      {
+        where: { id },
+        data: {
+          title,
+          body,
+          published
+        }
+      },
+      info
+    )
+  },
+  createComment(parent, { data }, { prisma }, info) {
+    const { text, author, post } = data
+    return prisma.mutation.createComment(
+      {
+        data: {
+          text,
+          author: {
+            connect: {
+              id: author
+            }
+          },
+          post: {
+            connect: {
+              id: post
+            }
+          }
+        }
+      },
+      info
+    )
+  },
+  deleteComment(parent, { id }, { prisma }, info) {
+    return prisma.mutation.deleteComment({ where: { id } }, info)
+  },
+  updateComment(parent, { id, data }, { prisma }, info) {
+    const { text } = data
+    return prisma.mutation.updateComment(
+      { where: { id }, data: { text } },
+      info
+    )
+  }
+}
+
+export { Mutation as default }
+```
+</p>
+</details>
+
+---
+
+<details><summary>schema.graphql</summary>
+<p>
+
+```graphql
+type Query {
+  users(query: String): [User!]!
+  posts(query: String): [Post!]!
+  comments: [Comment!]!
+  me: User!
+  post: Post!
+}
+
+type Mutation {
+  createUser(data: CreateUserInput!): User!
+  deleteUser(id: ID!): User!
+  updateUser(id: ID!, data: UpdateUserInput!): User!
+  createPost(data: CreatePostInput!): Post!
+  deletePost(id: ID!): Post!
+  updatePost(id: ID!, data: UpdatePostInput!): Post!
+  createComment(data: CreateCommentInput!): Comment!
+  deleteComment(id: ID!): Comment!
+  updateComment(id: ID!, data: UpdateCommentInput!): Comment!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+}
+
+input CreatePostInput {
+  title: String!
+  body: String!
+  published: Boolean!
+  author: ID!
+}
+
+input UpdatePostInput {
+  title: String
+  body: String
+  published: Boolean
+}
+
+input CreateCommentInput {
+  text: String!
+  author: ID!
+  post: ID!
+}
+
+input UpdateCommentInput {
+  text: String
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  posts: [Post!]!
+  comments: [Comment!]!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  published: Boolean!
+  author: User!
+  comments: [Comment!]!
+}
+
+type Comment {
+  id: ID!
+  text: String!
+  author: User!
+  post: Post!
+}
+```
+</p>
+</details>
+
+
+
+---
+
+Amazing - check out the [commit diff](https://github.com/eaverdeja/graphql-bootcamp/commit/b1556e25554a3bbc65b47eb698215dab74341cba?diff=unified). It's really brutal!
+
+Seems like it's pretty easy to expose an application level API on top of the extra fancy Prisma API with Node.
+
+<img src="https://media.giphy.com/media/yyZRSvISN1vvW/giphy.gif" style="margin-left: 30%" width="230" height="230" />
+
