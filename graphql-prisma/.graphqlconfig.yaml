@@ -6,3 +6,6 @@ projects:
         default:
           url: 'http://localhost:4466/'
           subscription: 'ws://localhost:4466/'
+        app:
+          url: 'http://localhost:4000/'
+          subscription: 'ws://localhost:4000/'
