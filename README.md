@@ -20,6 +20,13 @@
       - [Exists](#exists)
       - [@relation](#relation)
   - [Challenge - Modeling a review system](#challenge---modeling-a-review-system)
+  - [Using the binding in our API](#using-the-binding-in-our-api)
+    - [Simple query](#simple-query)
+    - [Using args and filters](#using-args-and-filters)
+    - [Mutations](#mutations-1)
+    - [Final touch - Subscriptions](#final-touch---subscriptions)
+- [Authentication](#authentication)
+  - [Protecting the Prisma API](#protecting-the-prisma-api)
 
 ## Things I Learned
 
@@ -1248,6 +1255,8 @@ export { Subscription as default }
 
 
 ### Authentication
+
+#### Protecting the Prisma API
 
 The first step we should take in order to secure our API should be restricting access to our Prisma API. By adding a `secret` field to `prisma.yml` we can achieve that. 
 
