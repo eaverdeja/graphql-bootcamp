@@ -1,6 +1,5 @@
 # GraphQL Bootcamp
 
-
 - [GraphQL Bootcamp](#graphql-bootcamp)
 - [Things I Learned](#things-i-learned)
 - [Tools used so far](#tools-used-so-far)
@@ -46,7 +45,7 @@ The course is outlined in a few different modules. I'll stick to the same separa
 ### Warm Up
 
 - [Babel - Try it out](https://babeljs.io/repl)
-    - We can tinker with the babel config straight from the browser!
+  - We can tinker with the babel config straight from the browser!
 
 ### GraphQL Basics
 
@@ -57,19 +56,19 @@ The course is outlined in a few different modules. I'll stick to the same separa
 #### Postgres
 
 - PgAdmin3 is not supported anymore for Ubuntu, so I tried going for pgAdmin4. The manual install seemed a bit cumbersome, so I went looking for a Docker solution. I found this small guide by Renato Groffe (valeu Renato! 👍) for spinning up Docker containers for `postgres` and for `pgAdmin4`. He even put a sweet `docker-compose.yml`!
-    - *The articles are in portuguese*
-    - [Postgres & Docker](https://medium.com/@renato.groffe/postgresql-docker-executando-uma-inst%C3%A2ncia-e-o-pgadmin-4-a-partir-de-containers-ad783e85b1a4)
-    - [Creating a docker-compose file for Postgres & PgAdmin4](https://medium.com/@renato.groffe/postgresql-pgadmin-4-docker-compose-montando-rapidamente-um-ambiente-para-uso-55a2ab230b89)
-    - The resulting compose file looks like this:
+  - _The articles are in portuguese_
+  - [Postgres & Docker](https://medium.com/@renato.groffe/postgresql-docker-executando-uma-inst%C3%A2ncia-e-o-pgadmin-4-a-partir-de-containers-ad783e85b1a4)
+  - [Creating a docker-compose file for Postgres & PgAdmin4](https://medium.com/@renato.groffe/postgresql-pgadmin-4-docker-compose-montando-rapidamente-um-ambiente-para-uso-55a2ab230b89)
+  - The resulting compose file looks like this:
 
 ```yml
-version: '3'
+version: "3"
 services:
   prisma:
     image: prismagraphql/prisma:1.27
     restart: always
     ports:
-    - "4466:4466"
+      - "4466:4466"
     environment:
       PRISMA_CONFIG: |
         port: 4466
@@ -86,7 +85,7 @@ services:
             port: '5432'
             migrations: true
             ssl: true
-            
+
   postgres-compose:
     image: postgres
     environment:
@@ -97,7 +96,7 @@ services:
       - /~/Projects/postgres:/var/lib/postgresql/data
     networks:
       - postgres-compose-network
-      
+
   pgadmin-compose:
     image: dpage/pgadmin4
     environment:
@@ -110,7 +109,7 @@ services:
     networks:
       - postgres-compose-network
 
-networks: 
+networks:
   postgres-compose-network:
     driver: bridge
 ```
@@ -137,20 +136,18 @@ We can easily do cool stuff like the query below straight from GraphQL Playgroun
 
 ```graphql
 mutation {
-  createUser(data: {
-    name: "Jack"
-    email: "jack@gmail.com"
-    comments: {
-      create: {
-        text: "Creating a nested comment on an existing post!"
-        post: {
-          connect: {
-            id: "cjsuc6g1k0eno079020fs4dng"
-          }
+  createUser(
+    data: {
+      name: "Jack"
+      email: "jack@gmail.com"
+      comments: {
+        create: {
+          text: "Creating a nested comment on an existing post!"
+          post: { connect: { id: "cjsuc6g1k0eno079020fs4dng" } }
         }
       }
     }
-  }) {
+  ) {
     id
     name
     email
@@ -171,7 +168,7 @@ input UserCreateInput {
   name: String!
   email: String!
   posts: PostCreateManyWithoutAuthorInput # We are NOT using this one in the example
-  comments: CommentCreateManyWithoutAuthorInput 
+  comments: CommentCreateManyWithoutAuthorInput
 }
 
 input CommentCreateManyWithoutAuthorInput {
@@ -192,7 +189,6 @@ input PostCreateOneInput {
 input PostWhereUniqueInput {
   id: ID
 }
-
 ```
 
 At the same time we are **creating a user**, we are **creating a comment** attached to an **existing post**. Having that kind of operation resumed in a query is very powerful for clients of the API. Sweet!
@@ -201,19 +197,13 @@ These input types are available throughtout the API:
 
 ```graphql
 mutation {
-  createComment(data: {
-    author: {
-      connect: {
-        email: "jack@gmail.com"
-      }
+  createComment(
+    data: {
+      author: { connect: { email: "jack@gmail.com" } }
+      post: { connect: { id: "cjsuc6g1k0eno079020fs4dng" } }
+      text: "Creating a comment for an existing user on an existing post!"
     }
-    post: {
-      connect: {
-        id: "cjsuc6g1k0eno079020fs4dng"
-      }
-    }
-    text: "Creating a comment for an existing user on an existing post!"
-  }) {
+  ) {
     id
     text
     author {
@@ -225,6 +215,7 @@ mutation {
   }
 }
 ```
+
 Here we're **creating a comment** while connecting it to an **existing user** and an **existing post**. I was surprised to see that the `email` field on the `User` type was added as an option to `connect` other than the id, seeing as it used the `@unique` directive in the datamodel definition:
 
 ```graphql
@@ -263,13 +254,12 @@ The `prisma-binding` library gives us an API to use Prisma with Node.js. After s
 ###### Queries
 
 ```javascript
-
 // Fetching users with information about their
 // posts and comments from our API
 prisma.query
-    .users(
-        null,
-        `
+  .users(
+    null,
+    `
         {
             id
             name
@@ -286,15 +276,15 @@ prisma.query
             }
         }
     `
-    )
-    .then(prettyLog)
+  )
+  .then(prettyLog);
 
 // Fetching comments with information about their
 // authors from our API
 prisma.query
-    .comments(
-        null,
-        `
+  .comments(
+    null,
+    `
             {
                 id
                 text
@@ -304,8 +294,8 @@ prisma.query
                 }
             }
         `
-    )
-    .then(prettyLog)
+  )
+  .then(prettyLog);
 ```
 
 `prettyLog()` gives us the following ouput:
@@ -313,45 +303,42 @@ prisma.query
 ```json
 // prettyLog() with the result of query.users()
 [
-   {
-      "id": "cjsuc6hew0enq0790gzcmxel5",
-      "name": "Bob",
-      "email": "bob@gmail.com",
-      "posts": []
-   },
-   {
+  {
+    "id": "cjsuc6hew0enq0790gzcmxel5",
+    "name": "Bob",
+    "email": "bob@gmail.com",
+    "posts": []
+  },
+  {
+    "id": "cjsuf0o3i00hy07906x376r0b",
+    "name": "Jack",
+    "email": "jack@gmail.com",
+    "posts": [
+      {
+        "id": "cjsurame5001x07905emg5yrc",
+        "title": "A post created with the prisma-node binding!"
+      }
+    ]
+  }
+][
+  // prettyLog() with the result of query.comments()
+  ({
+    "id": "cjsuf0of900hz0790137xt91r",
+    "text": "Creating a new user with a nested comment on an existing post!",
+    "author": {
       "id": "cjsuf0o3i00hy07906x376r0b",
-      "name": "Jack",
-      "email": "jack@gmail.com",
-      "posts": [
-         {
-            "id": "cjsurame5001x07905emg5yrc",
-            "title": "A post created with the prisma-node binding!"
-         }
-      ]
-   }
+      "name": "Jack"
+    }
+  },
+  {
+    "id": "cjsugr1vk01n20790u8f5qoi1",
+    "text": "Creating a comment for an existing user on an existing post!",
+    "author": {
+      "id": "cjsuf0o3i00hy07906x376r0b",
+      "name": "Jack"
+    }
+  })
 ]
-
-// prettyLog() with the result of query.comments()
-[
-   {
-      "id": "cjsuf0of900hz0790137xt91r",
-      "text": "Creating a new user with a nested comment on an existing post!",
-      "author": {
-         "id": "cjsuf0o3i00hy07906x376r0b",
-         "name": "Jack"
-      }
-   },
-   {
-      "id": "cjsugr1vk01n20790u8f5qoi1",
-      "text": "Creating a comment for an existing user on an existing post!",
-      "author": {
-         "id": "cjsuf0o3i00hy07906x376r0b",
-         "name": "Jack"
-      }
-   }
-]
-
 ```
 
 ###### Mutations
@@ -360,46 +347,46 @@ Similarly, we can do use the client for executing mutations:
 
 ```javascript
 prisma.mutation
-    .createPost(
-        {
-            data: {
-                title: 'A post created with the prisma-node binding!',
-                body: 'like.. wow',
-                published: false,
-                author: {
-                    connect: {
-                        id: 'cjsuf0o3i00hy07906x376r0b'
-                    }
-                }
-            }
-        },
-        '{ id title body published }'
-    )
-    .then(prettyLog)
-    .then(data =>
-        prisma.mutation.updatePost({
-            where: {
-                id: data.id
-            },
-            data: {
-                published: true,
-                body: 'Some ~killer~ description'
-            }
-        })
-    )
-    .then(data =>
-        prisma.query.posts(
-            null,
-            `
+  .createPost(
+    {
+      data: {
+        title: "A post created with the prisma-node binding!",
+        body: "like.. wow",
+        published: false,
+        author: {
+          connect: {
+            id: "cjsuf0o3i00hy07906x376r0b"
+          }
+        }
+      }
+    },
+    "{ id title body published }"
+  )
+  .then(prettyLog)
+  .then(data =>
+    prisma.mutation.updatePost({
+      where: {
+        id: data.id
+      },
+      data: {
+        published: true,
+        body: "Some ~killer~ description"
+      }
+    })
+  )
+  .then(data =>
+    prisma.query.posts(
+      null,
+      `
                 {
                     id
                     body
                     published
                 }
             `
-        )
     )
-    .then(prettyLog)
+  )
+  .then(prettyLog);
 ```
 
 `prettyLog()` gives us the following ouput:
@@ -407,19 +394,17 @@ prisma.mutation
 ```json
 // prettyLog() with the result of mutation.createPost()
 {
-   "id": "cjsurame5001x07905emg5yrc",
-   "title": "A post created with the prisma-node binding!",
-   "body": "like.. wow",
-   "published": false
-}
-
-// prettyLog with the result from query.posts() after calling mutation.updatePost()
-[
-   {
-      "id": "cjsurame5001x07905emg5yrc",
-      "body": "Some ~killer~ description",
-      "published": true
-   }
+  "id": "cjsurame5001x07905emg5yrc",
+  "title": "A post created with the prisma-node binding!",
+  "body": "like.. wow",
+  "published": false
+}[
+  // prettyLog with the result from query.posts() after calling mutation.updatePost()
+  {
+    "id": "cjsurame5001x07905emg5yrc",
+    "body": "Some ~killer~ description",
+    "published": true
+  }
 ]
 ```
 
@@ -428,25 +413,24 @@ prisma.mutation
 We could also do the above with `async/await`:
 
 ```javascript
-
 const runPrisma = async () => {
   const newPost = await prisma.mutation.createPost(
     {
       data: {
-        title: 'A post created with the prisma-node binding!',
-        body: 'like.. wow',
+        title: "A post created with the prisma-node binding!",
+        body: "like.. wow",
         published: false,
         author: {
           connect: {
-            id: 'cjsuf0o3i00hy07906x376r0b'
+            id: "cjsuf0o3i00hy07906x376r0b"
           }
         }
       }
     },
-    '{ id title body published }'
-  )
+    "{ id title body published }"
+  );
 
-  prettyLog(newPost)
+  prettyLog(newPost);
 
   const updatedPost = await prisma.mutation.updatePost({
     where: {
@@ -454,9 +438,9 @@ const runPrisma = async () => {
     },
     data: {
       published: true,
-      body: 'Some ~killer~ description'
+      body: "Some ~killer~ description"
     }
-  })
+  });
 
   const allPosts = await prisma.query.posts(
     null,
@@ -467,22 +451,23 @@ const runPrisma = async () => {
           published
       }
     `
-  )
+  );
 
-  prettyLog(allPosts)
-}
+  prettyLog(allPosts);
+};
 
-runPrisma()
+runPrisma();
 ```
 
 > Note: prettyLog() is quite simple:
+
 ```javascript
 export const prettyLog = data => {
-    console.log(JSON.stringify(data, null, 3))
+  console.log(JSON.stringify(data, null, 3));
 
-    // Keep the ability to continue on the promise chain
-    return Promise.resolve(data)
-}
+  // Keep the ability to continue on the promise chain
+  return Promise.resolve(data);
+};
 ```
 
 ###### Exists
@@ -492,9 +477,9 @@ We can use the `exists` binding to check if a certain instance of a type exists:
 ```javascript
 prisma.exists
   .Comment({
-    id: 'cjsuf0of900hz0790137xt91r'
+    id: "cjsuf0of900hz0790137xt91r"
   })
-  .then(prettyLog) // bool
+  .then(prettyLog); // bool
 ```
 
 We can use any attribute from our model for the search criteria:
@@ -504,7 +489,7 @@ prisma.exists
   .Post({
     published: true
   })
-  .then(prettyLog) // bool
+  .then(prettyLog); // bool
 ```
 
 Using the `exists` property, we can build error workflows before actually calling mutations:
@@ -513,10 +498,10 @@ Using the `exists` property, we can build error workflows before actually callin
 const createPostForUser = async (authorId, data) => {
   const userExists = await prisma.exists.User({
     id: authorId
-  })
+  });
 
   if (!userExists) {
-    throw new Error('User not found!')
+    throw new Error("User not found!");
   }
 
   const { author: user } = await prisma.mutation.createPost(
@@ -530,10 +515,10 @@ const createPostForUser = async (authorId, data) => {
         ...data
       }
     },
-    '{ author {id name email posts { id title published } } }'
-  )
-  return user
-}
+    "{ author {id name email posts { id title published } } }"
+  );
+  return user;
+};
 ```
 
 ###### @relation
@@ -551,7 +536,7 @@ type Post {
   ...
   author: User! @relation(name: "PostToUser", onDelete: SET_NULL)
   comments: [Comment!]! @relation(name: "CommentToPost", onDelete: CASCADE)
-} 
+}
 
 type Comment {
   ...
@@ -562,9 +547,9 @@ type Comment {
 
 #### Challenge - Modeling a review system
 
-Andrew proposed that a review system for *something* should be modeled separate from our blog model. I chose memes.
+Andrew proposed that a review system for _something_ should be modeled separate from our blog model. I chose memes.
 
-It is possible to configure multiple *prisma services* using the same docker service. A separate schema is created in the postgres database and a new endpoint is made available after editing both the `prisma.yml` and `.graphqlconfig.yaml` files.
+It is possible to configure multiple _prisma services_ using the same docker service. A separate schema is created in the postgres database and a new endpoint is made available after editing both the `prisma.yml` and `.graphqlconfig.yaml` files.
 
 After the setup, a small exercise was proposed, where 2 users should be created and both of them should review a single meme. One of the users should be deleted and the reviews should also get deleted automatically given the use of `@relation (..., onDelete: CASCADE)`.
 
@@ -584,7 +569,7 @@ type Meme {
   description: String!
   notSafeForWork: Boolean!
   reviews: [Review!]! @relation(name: "MemeToReviews", onDelete: CASCADE)
-} 
+}
 
 type Review {
   id: ID! @unique
@@ -595,76 +580,76 @@ type Review {
 ```
 
 ```javascript
-import { Prisma } from 'prisma-binding'
-import { prettyLog } from './utils'
+import { Prisma } from "prisma-binding";
+import { prettyLog } from "./utils";
 
 const prisma = new Prisma({
-  typeDefs: 'src/generated/schema.graphql',
-  endpoint: 'http://localhost:4466/reviews/default'
-})
+  typeDefs: "src/generated/schema.graphql",
+  endpoint: "http://localhost:4466/reviews/default"
+});
 
 const truncateTables = async () => {
   // No ID would ever match 'xxx'
   const deleteAll = {
     where: {
-      id_not: 'xxx'
+      id_not: "xxx"
     }
-  }
+  };
 
   // Order is important here!
   const mutations = [
     prisma.mutation.deleteManyReviews,
     prisma.mutation.deleteManyMemes,
     prisma.mutation.deleteManyUsers
-  ]
-  
+  ];
+
   for (const mutation of mutations) {
     // We need to respect the
     // foreign key structures
     /* eslint-disable no-await-in-loop */
-    await mutation.call(null, deleteAll)
+    await mutation.call(null, deleteAll);
   }
-}
+};
 
 const run = async () => {
   try {
-    await truncateTables()
+    await truncateTables();
 
     // Creating 2 users
     const user = await prisma.mutation.createUser(
       {
         data: {
-          name: 'John',
+          name: "John",
           email: "John's email"
         }
       },
-      '{ id name email }'
-    )
+      "{ id name email }"
+    );
     const user2 = await prisma.mutation.createUser(
       {
         data: {
-          name: 'Jack',
+          name: "Jack",
           email: "Jack's email"
         }
       },
-      '{ id name email }'
-    )
-    const chosenUser = user
+      "{ id name email }"
+    );
+    const chosenUser = user;
 
     // Creating a meme for review
     const meme = await prisma.mutation.createMeme(
       {
         data: {
-          description: 'Dem Legs',
+          description: "Dem Legs",
           url:
-            'https://www.memedroid.com/memes/detail/2152162?refGallery=random&page=1',
+            "https://www.memedroid.com/memes/detail/2152162?refGallery=random&page=1",
           notSafeForWork: false
         }
       },
-      '{ id description url notSafeForWork }'
-    )
+      "{ id description url notSafeForWork }"
+    );
 
-    prettyLog(meme, 'Meme')
+    prettyLog(meme, "Meme");
 
     // Create a review for the meme
     const review = await prisma.mutation.createReview(
@@ -683,8 +668,8 @@ const run = async () => {
           }
         }
       },
-      '{ score reviewer { name } meme { description } }'
-    )
+      "{ score reviewer { name } meme { description } }"
+    );
     const review2 = await prisma.mutation.createReview(
       {
         data: {
@@ -701,19 +686,19 @@ const run = async () => {
           }
         }
       },
-      '{ score reviewer { name } meme { description } }'
-    )
+      "{ score reviewer { name } meme { description } }"
+    );
 
-    prettyLog(review, "John's review")
-    prettyLog(review2, "Jack's review")
+    prettyLog(review, "John's review");
+    prettyLog(review2, "Jack's review");
 
     // Delete the user
-    console.log(`Deleting ${chosenUser.name}!`)
+    console.log(`Deleting ${chosenUser.name}!`);
     await prisma.mutation.deleteUser({
       where: {
         id: chosenUser.id
       }
-    })
+    });
 
     // Make sure the user's reviews were deleted
     const reviews = await prisma.query.reviews(
@@ -724,46 +709,46 @@ const run = async () => {
         score
       }
     `
-    )
-    prettyLog(reviews, 'All reviews')
+    );
+    prettyLog(reviews, "All reviews");
 
-    console.log(`Checking if ${chosenUser.name} still has reviews`)
+    console.log(`Checking if ${chosenUser.name} still has reviews`);
     const userHasReviews = async userId =>
       prisma.exists.Review({
         reviewer: {
           id: userId
         }
-      })
+      });
     if (await userHasReviews(chosenUser.id)) {
       throw new Error(
         `The reviews for ${chosenUser.name} should have been deleted!`
-      )
+      );
     } else {
-      console.log('All is good!')
+      console.log("All is good!");
     }
-    
-    console.log(`Checking if ${meme.description} still has reviews`)
+
+    console.log(`Checking if ${meme.description} still has reviews`);
     const memeHasReviews = async userId =>
       prisma.exists.Review({
         meme: {
           id: userId
         }
-      })
+      });
     if (await memeHasReviews(meme.id)) {
       throw new Error(
         `The reviews for ${meme.description} should have been deleted!`
-      )
+      );
     } else {
-      console.log('All is good!')
+      console.log("All is good!");
     }
   } catch (e) {
-    console.log(e)
+    console.log(e);
   }
-}
+};
 
-run()
+run();
 
-export default prisma
+export default prisma;
 ```
 
 The console output looks like this:
@@ -810,3 +795,15 @@ Deleting Dem Legs!
 Checking if Dem Legs still has reviews
 All is good!
 ```
+
+##### Using the binding in our API
+
+Using `prisma-binding`, a typical resolver could look something like this:
+
+```javascript
+users(parent, args, { prisma }, info) {
+  return prisma.query.users(null, info)
+}
+```
+
+The first argument is `null` because we have no **operation arguments**. In other words, the client can't modify the behaviour of this query by passing in `args`. The second argument should have the desired **selection set**. In the examples above, we hardcoded the selection set as the second argument. **Given that our clients are now in control of the incoming queries**, we leverage the `info` argument as the second parameter to our query. That ensures we fetch the fields asked for by the client!
