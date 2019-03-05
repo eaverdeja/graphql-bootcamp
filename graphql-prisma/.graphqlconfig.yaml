@@ -2,6 +2,7 @@ projects:
   graphql-bootcamp:
     schemaPath: 'src/generated/schema.graphql'
     extensions:
+      prisma: prisma/prisma.yml
       endpoints:
         default:
           url: 'http://localhost:4466/'
