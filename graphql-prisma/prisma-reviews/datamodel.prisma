@@ -17,5 +17,5 @@ type Review {
   id: ID! @unique
   score: Float!
   reviewer: User! @relation(name: "ReviewToUser", onDelete: SET_NULL)
-  meme: Meme! @relation(name: "ReviewToMeme", onDelete: SET_NULL)
+  meme: Meme! @relation(name: "MemeToReviews", onDelete: SET_NULL)
 }

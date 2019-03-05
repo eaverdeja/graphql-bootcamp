@@ -20,7 +20,7 @@
       - [Async / Await](#async--await)
       - [Exists](#exists)
       - [@relation](#relation)
-      - [Challenge - Modeling a review system](#challenge---modeling-a-review-system)
+  - [Challenge - Modeling a review system](#challenge---modeling-a-review-system)
 
 ## Things I Learned
 
@@ -560,7 +560,7 @@ type Comment {
 }
 ```
 
-##### Challenge - Modeling a review system
+#### Challenge - Modeling a review system
 
 Andrew proposed that a review system for *something* should be modeled separate from our blog model. I chose memes.
 
@@ -741,6 +741,21 @@ const run = async () => {
     } else {
       console.log('All is good!')
     }
+    
+    console.log(`Checking if ${meme.description} still has reviews`)
+    const memeHasReviews = async userId =>
+      prisma.exists.Review({
+        meme: {
+          id: userId
+        }
+      })
+    if (await memeHasReviews(meme.id)) {
+      throw new Error(
+        `The reviews for ${meme.description} should have been deleted!`
+      )
+    } else {
+      console.log('All is good!')
+    }
   } catch (e) {
     console.log(e)
   }
@@ -790,5 +805,8 @@ All reviews
      }
   ]
 Checking if John still has reviews
+All is good!
+Deleting Dem Legs!
+Checking if Dem Legs still has reviews
 All is good!
 ```
