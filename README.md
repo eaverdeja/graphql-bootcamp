@@ -1,5 +1,27 @@
 # GraphQL Bootcamp
 
+
+- [GraphQL Bootcamp](#graphql-bootcamp)
+- [Things I Learned](#things-i-learned)
+- [Tools used so far](#tools-used-so-far)
+- [Modules](#modules)
+- [Warm Up](#warm-up)
+- [GraphQL Basics](#graphql-basics)
+- [Database layer](#database-layer)
+  - [Postgres](#postgres)
+  - [Prisma](#prisma)
+    - [Database agnostic](#database-agnostic)
+    - [Service abstraction](#service-abstraction)
+    - [Migrations](#migrations)
+    - [Nested mutations](#nested-mutations)
+    - [Prisma binding](#prisma-binding)
+      - [Queries](#queries)
+      - [Mutations](#mutations)
+      - [Async / Await](#async--await)
+      - [Exists](#exists)
+      - [@relation](#relation)
+      - [Challenge - Modeling a review system](#challenge---modeling-a-review-system)
+
 ## Things I Learned
 
 I'll use this `README` to document stuff I learned while working on the [GraphQL Bootcamp](https://www.udemy.com/graphql-bootcamp) course at Udemy.
