@@ -48,8 +48,10 @@ const Mutation = {
       token: createToken({ userId: user.id })
     }
   },
-  deleteUser(parent, { id }, { prisma }, info) {
-    return prisma.mutation.deleteUser({ where: { id } }, info)
+  deleteUser(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+
+    return prisma.mutation.deleteUser({ where: { id: userId } }, info)
   },
   updateUser(parent, { data }, { prisma, request }, info) {
     const userId = getUserId(request)
