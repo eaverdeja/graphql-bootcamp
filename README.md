@@ -1210,7 +1210,7 @@ Seems like it's pretty easy to expose an application level API on top of the ext
 
 ##### Final touch - Subscriptions
 
-Since Prisma acts as a layer on top of the chosen storage, it easily handles the subscription work which was done with Apollo's `pubsub`.
+Since Prisma acts as a layer on top of the chosen storage, it easily handles the subscription work which was done with GraphQL Yoga's `pubsub`.
 
 > The actual meat inside of what remains of the subscriptions file is related to our actual business needs: watching comments from a specific post and watching only the published posts.
 
