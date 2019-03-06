@@ -54,8 +54,10 @@ const Mutation = {
   updateUser(parent, { id, data }, { prisma }, info) {
     return prisma.mutation.updateUser({ where: { id }, data }, info)
   },
-  createPost(parent, { data }, { prisma }, info) {
-    const { title, body, published, author } = data
+  createPost(parent, { data }, { prisma, request }, info) {
+    const userId = getUserId(request)
+
+    const { title, body, published } = data
     return prisma.mutation.createPost(
       {
         data: {
@@ -64,7 +66,7 @@ const Mutation = {
           published,
           author: {
             connect: {
-              id: author
+              id: userId
             }
           }
         }
