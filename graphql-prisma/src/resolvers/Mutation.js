@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { getUserId, createToken } from '../utils/auth'
+import { postBeginsToUser } from '../utils/post'
+import { commentBeginsToUser } from '../utils/comment'
 
 const Mutation = {
   async login(
@@ -79,22 +81,13 @@ const Mutation = {
     )
   },
   async deletePost(parent, { id }, { prisma, request }, info) {
-    const userId = getUserId(request)
-
-    const postBeginsToUser = await prisma.exists.Post({
-      id,
-      author: {
-        id: userId
-      }
-    })
-
-    if (!postBeginsToUser) {
-      throw new Error("The desired post doesn't belong to the current user")
-    }
+    await postBeginsToUser(id, prisma, request)
 
     return prisma.mutation.deletePost({ where: { id } }, info)
   },
-  updatePost(parent, { id, data }, { prisma }, info) {
+  async updatePost(parent, { id, data }, { prisma, request }, info) {
+    await postBeginsToUser(id, prisma, request)
+
     const { title, body, published } = data
     return prisma.mutation.updatePost(
       {
@@ -108,15 +101,17 @@ const Mutation = {
       info
     )
   },
-  createComment(parent, { data }, { prisma }, info) {
-    const { text, author, post } = data
+  createComment(parent, { data }, { prisma, request }, info) {
+    const userId = getUserId(request)
+
+    const { text, post } = data
     return prisma.mutation.createComment(
       {
         data: {
           text,
           author: {
             connect: {
-              id: author
+              id: userId
             }
           },
           post: {
@@ -129,10 +124,14 @@ const Mutation = {
       info
     )
   },
-  deleteComment(parent, { id }, { prisma }, info) {
+  async deleteComment(parent, { id }, { prisma, request }, info) {
+    await commentBeginsToUser(id, prisma, request)
+
     return prisma.mutation.deleteComment({ where: { id } }, info)
   },
-  updateComment(parent, { id, data }, { prisma }, info) {
+  async updateComment(parent, { id, data }, { prisma, request }, info) {
+    await commentBeginsToUser(id, prisma, request)
+
     const { text } = data
     return prisma.mutation.updateComment(
       { where: { id }, data: { text } },
