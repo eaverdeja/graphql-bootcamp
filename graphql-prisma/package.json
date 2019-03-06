@@ -22,6 +22,7 @@
     "babel-preset-env": "^1.7.0",
     "bcryptjs": "^2.4.3",
     "graphql-yoga": "^1.14.10",
+    "jsonwebtoken": "^8.5.0",
     "prisma-binding": "^2.3.3"
   },
   "devDependencies": {

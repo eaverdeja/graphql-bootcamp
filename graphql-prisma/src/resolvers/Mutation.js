@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 const Mutation = {
   async createUser(parent, { data }, { prisma }, info) {
@@ -9,15 +10,17 @@ const Mutation = {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    return prisma.mutation.createUser(
-      {
-        data: {
-          ...data,
-          password: hashedPassword
-        }
-      },
-      info
-    )
+    const user = await prisma.mutation.createUser({
+      data: {
+        ...data,
+        password: hashedPassword
+      }
+    })
+
+    return {
+      user,
+      token: jwt.sign({ userId: user.id }, 'thisisasecret')
+    }
   },
   deleteUser(parent, { id }, { prisma }, info) {
     return prisma.mutation.deleteUser({ where: { id } }, info)
