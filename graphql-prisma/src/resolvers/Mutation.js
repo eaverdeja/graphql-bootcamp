@@ -78,7 +78,20 @@ const Mutation = {
       info
     )
   },
-  deletePost(parent, { id }, { prisma }, info) {
+  async deletePost(parent, { id }, { prisma, request }, info) {
+    const userId = getUserId(request)
+
+    const postBeginsToUser = await prisma.exists.Post({
+      id,
+      author: {
+        id: userId
+      }
+    })
+
+    if (!postBeginsToUser) {
+      throw new Error("The desired post doesn't belong to the current user")
+    }
+
     return prisma.mutation.deletePost({ where: { id } }, info)
   },
   updatePost(parent, { id, data }, { prisma }, info) {
