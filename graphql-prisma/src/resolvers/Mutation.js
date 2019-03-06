@@ -1,7 +1,35 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
+const JWT_SECRET = 'thisisasecret'
+
 const Mutation = {
+  async login(
+    parent,
+    {
+      credentials: { email, password }
+    },
+    { prisma },
+    info
+  ) {
+    const user = await prisma.query.user({
+      where: {
+        email
+      }
+    })
+    const hashedPassword = user ? user.password : ''
+
+    const matchPassword = await bcrypt.compare(password, hashedPassword)
+
+    if (!user || !matchPassword) {
+      throw new Error('Invalid credentials!')
+    }
+
+    return {
+      user,
+      token: jwt.sign({ userId: user.id }, JWT_SECRET)
+    }
+  },
   async createUser(parent, { data }, { prisma }, info) {
     const { password } = data
     if (password.length < 8) {
@@ -19,7 +47,7 @@ const Mutation = {
 
     return {
       user,
-      token: jwt.sign({ userId: user.id }, 'thisisasecret')
+      token: jwt.sign({ userId: user.id }, JWT_SECRET)
     }
   },
   deleteUser(parent, { id }, { prisma }, info) {
