@@ -51,8 +51,10 @@ const Mutation = {
   deleteUser(parent, { id }, { prisma }, info) {
     return prisma.mutation.deleteUser({ where: { id } }, info)
   },
-  updateUser(parent, { id, data }, { prisma }, info) {
-    return prisma.mutation.updateUser({ where: { id }, data }, info)
+  updateUser(parent, { data }, { prisma, request }, info) {
+    const userId = getUserId(request)
+
+    return prisma.mutation.updateUser({ where: { id: userId }, data }, info)
   },
   createPost(parent, { data }, { prisma, request }, info) {
     const userId = getUserId(request)
