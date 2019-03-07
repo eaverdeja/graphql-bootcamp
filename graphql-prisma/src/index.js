@@ -9,6 +9,7 @@ import Comment from './resolvers/Comment'
 import prisma from './prisma'
 import { postBelongsToUser } from './utils/post'
 import { commentBelongsToUser } from './utils/comment'
+import { getUserId, createToken } from './utils/auth'
 
 const pubsub = new PubSub()
 
@@ -33,6 +34,10 @@ const server = new GraphQLServer({
       },
       commentUtils: {
         commentBelongsToUser
+      },
+      auth: {
+        getUserId,
+        createToken
       }
     }
   }

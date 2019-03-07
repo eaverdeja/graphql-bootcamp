@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs'
-import { getUserId, createToken } from '../utils/auth'
 
 const Mutation = {
   async login(
@@ -7,7 +6,10 @@ const Mutation = {
     {
       credentials: { email, password }
     },
-    { prisma },
+    {
+      prisma,
+      auth: { createToken }
+    },
     info
   ) {
     const user = await prisma.query.user({
@@ -28,7 +30,15 @@ const Mutation = {
       token: createToken({ userId: user.id })
     }
   },
-  async createUser(parent, { data }, { prisma }, info) {
+  async createUser(
+    parent,
+    { data },
+    {
+      prisma,
+      auth: { createToken }
+    },
+    info
+  ) {
     const { password } = data
     if (password.length < 8) {
       throw new Error('Password must be 8 characters or longer.')
@@ -48,17 +58,44 @@ const Mutation = {
       token: createToken({ userId: user.id })
     }
   },
-  deleteUser(parent, args, { prisma, request }, info) {
+  deleteUser(
+    parent,
+    args,
+    {
+      prisma,
+      request,
+      auth: { getUserId }
+    },
+    info
+  ) {
     const userId = getUserId(request)
 
     return prisma.mutation.deleteUser({ where: { id: userId } }, info)
   },
-  updateUser(parent, { data }, { prisma, request }, info) {
+  updateUser(
+    parent,
+    { data },
+    {
+      prisma,
+      request,
+      auth: { getUserId }
+    },
+    info
+  ) {
     const userId = getUserId(request)
 
     return prisma.mutation.updateUser({ where: { id: userId }, data }, info)
   },
-  createPost(parent, { data }, { prisma, request }, info) {
+  createPost(
+    parent,
+    { data },
+    {
+      prisma,
+      request,
+      auth: { getUserId }
+    },
+    info
+  ) {
     const userId = getUserId(request)
 
     const { title, body, published } = data
@@ -117,7 +154,16 @@ const Mutation = {
       info
     )
   },
-  createComment(parent, { data }, { prisma, request }, info) {
+  createComment(
+    parent,
+    { data },
+    {
+      prisma,
+      request,
+      auth: { getUserId }
+    },
+    info
+  ) {
     const userId = getUserId(request)
 
     const { text, post } = data
