@@ -31,16 +31,42 @@ const Query = {
       email: 'mike@example.com'
     }
   },
-  post(parent, args, { prisma }, info) {
-    const whereId = {
-      where: {
-        id: args.id
-      }
-    }
-    if (!prisma.exists.Post(whereId)) {
+  async post(
+    parent,
+    { id },
+    {
+      prisma,
+      request,
+      auth: { getUserId }
+    },
+    info
+  ) {
+    const userId = getUserId(request, false)
+
+    const posts = await prisma.query.posts(
+      {
+        where: {
+          id,
+          OR: [
+            {
+              published: true
+            },
+            {
+              author: {
+                id: userId
+              }
+            }
+          ]
+        }
+      },
+      info
+    )
+
+    if (posts.length === 0) {
       throw new Error('Post not found!')
     }
-    return prisma.query.post(whereId, info)
+
+    return posts[0]
   }
 }
 
