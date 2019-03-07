@@ -146,7 +146,7 @@ const Mutation = {
     {
       prisma,
       request,
-      commentsUtils: { commentBelongsToUser }
+      commentUtils: { commentBelongsToUser }
     },
     info
   ) {
@@ -160,7 +160,7 @@ const Mutation = {
     {
       prisma,
       request,
-      commentsUtils: { commentBelongsToUser }
+      commentUtils: { commentBelongsToUser }
     },
     info
   ) {
