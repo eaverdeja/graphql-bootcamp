@@ -7,6 +7,8 @@ import User from './resolvers/User'
 import Post from './resolvers/Post'
 import Comment from './resolvers/Comment'
 import prisma from './prisma'
+import { postBelongsToUser } from './utils/post'
+import { commentBelongsToUser } from './utils/comment'
 
 const pubsub = new PubSub()
 
@@ -25,7 +27,13 @@ const server = new GraphQLServer({
       db,
       pubsub,
       prisma,
-      request
+      request,
+      postUtils: {
+        postBelongsToUser
+      },
+      commentUtils: {
+        commentBelongsToUser
+      }
     }
   }
 })

@@ -1,7 +1,5 @@
 import bcrypt from 'bcryptjs'
 import { getUserId, createToken } from '../utils/auth'
-import { postBeginsToUser } from '../utils/post'
-import { commentBeginsToUser } from '../utils/comment'
 
 const Mutation = {
   async login(
@@ -80,13 +78,31 @@ const Mutation = {
       info
     )
   },
-  async deletePost(parent, { id }, { prisma, request }, info) {
-    await postBeginsToUser(id, prisma, request)
+  async deletePost(
+    parent,
+    { id },
+    {
+      prisma,
+      request,
+      postUtils: { postBelongsToUser }
+    },
+    info
+  ) {
+    await postBelongsToUser(id, prisma, request)
 
     return prisma.mutation.deletePost({ where: { id } }, info)
   },
-  async updatePost(parent, { id, data }, { prisma, request }, info) {
-    await postBeginsToUser(id, prisma, request)
+  async updatePost(
+    parent,
+    { id, data },
+    {
+      prisma,
+      request,
+      postUtils: { postBelongsToUser }
+    },
+    info
+  ) {
+    await postBelongsToUser(id, prisma, request)
 
     const { title, body, published } = data
     return prisma.mutation.updatePost(
@@ -124,19 +140,33 @@ const Mutation = {
       info
     )
   },
-  async deleteComment(parent, { id }, { prisma, request }, info) {
-    await commentBeginsToUser(id, prisma, request)
+  async deleteComment(
+    parent,
+    { id },
+    {
+      prisma,
+      request,
+      commentsUtils: { commentBelongsToUser }
+    },
+    info
+  ) {
+    await commentBelongsToUser(id, prisma, request)
 
     return prisma.mutation.deleteComment({ where: { id } }, info)
   },
-  async updateComment(parent, { id, data }, { prisma, request }, info) {
-    await commentBeginsToUser(id, prisma, request)
+  async updateComment(
+    parent,
+    { id, data },
+    {
+      prisma,
+      request,
+      commentsUtils: { commentBelongsToUser }
+    },
+    info
+  ) {
+    await commentBelongsToUser(id, prisma, request)
 
-    const { text } = data
-    return prisma.mutation.updateComment(
-      { where: { id }, data: { text } },
-      info
-    )
+    return prisma.mutation.updateComment({ where: { id }, data }, info)
   }
 }
 

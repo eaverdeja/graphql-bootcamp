@@ -1,6 +1,6 @@
 import { getUserId } from './auth'
 
-export const postBeginsToUser = async (postId, prisma, request) => {
+export const postBelongsToUser = async (postId, prisma, request) => {
   const userId = getUserId(request)
 
   const match = await prisma.exists.Post({
