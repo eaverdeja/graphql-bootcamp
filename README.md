@@ -1,5 +1,28 @@
 # GraphQL Bootcamp
 
+## Things I Learned
+
+I'll use this `README` to document stuff I learned while working on the [GraphQL Bootcamp](https://www.udemy.com/graphql-bootcamp) course at Udemy.
+
+> Obviously, a lot of details are left out since I already knew some of the topics covered. If you want those, get the course on Udemy. It's good 👍
+
+## Tools used so far
+
+Eventually I'll collect all (or most of the) tools used in the course in this list, with a short and objective description of each:
+
+- uuid
+- nodemon
+- babel
+- graphql yoga
+- prisma
+  - prisma-binding
+- graphql playground
+- graphql cli
+
+## Modules
+
+The course is outlined in a few different modules. I'll stick to the same separation whenever possible throughout this `README`
+
 - [GraphQL Bootcamp](#graphql-bootcamp)
 - [Things I Learned](#things-i-learned)
 - [Tools used so far](#tools-used-so-far)
@@ -27,27 +50,6 @@
     - [Final touch - Subscriptions](#final-touch---subscriptions)
 - [Authentication](#authentication)
   - [Protecting the Prisma API](#protecting-the-prisma-api)
-
-## Things I Learned
-
-I'll use this `README` to document stuff I learned while working on the [GraphQL Bootcamp](https://www.udemy.com/graphql-bootcamp) course at Udemy.
-
-## Tools used so far
-
-Eventually I'll collect all (or most of the) tools used in the course in this list, with a short and objective description of each:
-
-- uuid
-- nodemon
-- babel
-- graphql yoga
-- prisma
-  - prisma-binding
-- graphql playground
-- graphql cli
-
-## Modules
-
-The course is outlined in a few different modules. I'll stick to the same separation whenever possible throughout this `README`
 
 ### Warm Up
 
@@ -139,7 +141,7 @@ Prisma hides the database implementation details from us. The same datamodel sho
 
 ##### Migrations
 
-The current of workflow of changing the `datamodel.prisma` will probably be affected by [official migration support by Prisma](https://github.com/prisma/rfcs/blob/migrations/text/0000-migrations.md). The [motivation](https://github.com/prisma/rfcs/blob/migrations/text/0000-migrations.md#motivation) section is clear and straight to the point. The new spec aims to be more explicit, having the `cli` generate editable migration files and using those as a source of truth instead of using the actual schema.
+The current workflow of changing the `datamodel.prisma` will probably be affected by [official migration support by Prisma](https://github.com/prisma/rfcs/blob/migrations/text/0000-migrations.md). The [motivation](https://github.com/prisma/rfcs/blob/migrations/text/0000-migrations.md#motivation) section is clear and straight to the point. The new spec aims to be more explicit, having the `cli` generate editable migration files and using those as a source of truth instead of using the actual schema.
 
 Personally it seems like a good idea to strike balance between declarative and imperative paradigms since declarative tools can get pretty magic ✨ pretty fast 🏎. For example, not knowing the **actual** database changes, I have to trust Prisma as a user that all will go well. With migrations support, I could see that adding a `@unique` directive to a field would give me a unique index on postgres.
 
@@ -321,7 +323,7 @@ prisma.query
         }
     `
   )
-  .then(prettyLog);
+  .then(prettyLog)
 
 // Fetching comments with information about their
 // authors from our API
@@ -339,7 +341,7 @@ prisma.query
             }
         `
   )
-  .then(prettyLog);
+  .then(prettyLog)
 ```
 </p>
 </details>
@@ -439,7 +441,7 @@ prisma.mutation
       `
     )
   )
-  .then(prettyLog);
+  .then(prettyLog)
 ```
 </p>
 </details>
@@ -456,7 +458,8 @@ prettyLog() gives us the following output</summary>
   "body": "like.. wow",
   "published": false
 }[
-  // prettyLog with the result from query.posts() after calling mutation.updatePost()
+  // prettyLog with the result from query.posts()
+  // after calling mutation.updatePost()
   {
     "id": "cjsurame5001x07905emg5yrc",
     "body": "Some ~killer~ description",
@@ -490,9 +493,9 @@ const runPrisma = async () => {
       }
     },
     "{ id title body published }"
-  );
+  )
 
-  prettyLog(newPost);
+  prettyLog(newPost)
 
   const updatedPost = await prisma.mutation.updatePost({
     where: {
@@ -502,7 +505,7 @@ const runPrisma = async () => {
       published: true,
       body: "Some ~killer~ description"
     }
-  });
+  })
 
   const allPosts = await prisma.query.posts(
     null,
@@ -513,78 +516,62 @@ const runPrisma = async () => {
           published
       }
     `
-  );
+  )
 
-  prettyLog(allPosts);
-};
+  prettyLog(allPosts)
+}
 
-runPrisma();
+runPrisma()
 ```
 </p>
 </details>
 
 ---
 
-<details><summary>prettyLog() is quite simple</summary>
-<p>
+`prettyLog()` is quite simple. We just use it to give us a nice and simple (quick and dirty) debug tool:
 
 ```javascript
 export const prettyLog = data => {
-  console.log(JSON.stringify(data, null, 3));
+  console.log(JSON.stringify(data, null, 3))
 
   // Keep the ability to continue on the promise chain
-  return Promise.resolve(data);
-};
+  return Promise.resolve(data)
+}
 ```
-</p>
-</details>
-
----
 
 ###### Exists
 
-<details><summary>We can use the `exists` binding to check if a certain instance of a type exists</summary>
-<p>
+We can use the `exists` binding to check if a certain instance of a type exists:
 
 ```javascript
 prisma.exists
   .Comment({
     id: "cjsuf0of900hz0790137xt91r"
   })
-  .then(prettyLog); // bool
+  .then(prettyLog) // bool
 ```
-</p>
-</details>
 
----
-
-<details><summary>
-We can use any attribute from our model for the search criteria</summary>
-<p>
+We can use any attribute from our model for the search criteria:
 
 ```javascript
 prisma.exists
   .Post({
     published: true
   })
-  .then(prettyLog); // bool
+  .then(prettyLog) // bool
 ```
-</p>
-</details>
 
----
-
-<details><summary>Using the `exists` property, we can build error workflows before actually calling mutations</summary>
+<details><summary>Using the <code>exists</code> property, we can build error workflows before actually calling mutations</summary>
 <p>
 
 ```javascript
 const createPostForUser = async (authorId, data) => {
   const userExists = await prisma.exists.User({
     id: authorId
-  });
+  })
 
   if (!userExists) {
-    throw new Error("User not found!");
+    throw new Error("User not found!")
   }
 
   const { author: user } = await prisma.mutation.createPost(
@@ -599,9 +586,9 @@ const createPostForUser = async (authorId, data) => {
       }
     },
     "{ author {id name email posts { id title published } } }"
-  );
-  return user;
-};
+  )
+  return user
+}
 ```
 </p>
 </details>
@@ -684,13 +671,13 @@ type Review {
 <p>
 
 ```javascript
-import { Prisma } from "prisma-binding";
-import { prettyLog } from "./utils";
+import { Prisma } from "prisma-binding"
+import { prettyLog } from "./utils"
 
 const prisma = new Prisma({
   typeDefs: "src/generated/schema.graphql",
   endpoint: "http://localhost:4466/reviews/default"
-});
+})
 
 const truncateTables = async () => {
   // No ID would ever match 'xxx'
@@ -698,26 +685,26 @@ const truncateTables = async () => {
     where: {
       id_not: "xxx"
     }
-  };
+  }
 
   // Order is important here!
   const mutations = [
     prisma.mutation.deleteManyReviews,
     prisma.mutation.deleteManyMemes,
     prisma.mutation.deleteManyUsers
-  ];
+  ]
 
   for (const mutation of mutations) {
     // We need to respect the
     // foreign key structures
     /* eslint-disable no-await-in-loop */
-    await mutation.call(null, deleteAll);
+    await mutation.call(null, deleteAll)
   }
-};
+}
 
 const run = async () => {
   try {
-    await truncateTables();
+    await truncateTables()
 
     // Creating 2 users
     const user = await prisma.mutation.createUser(
@@ -728,7 +715,7 @@ const run = async () => {
         }
       },
       "{ id name email }"
-    );
+    )
     const user2 = await prisma.mutation.createUser(
       {
         data: {
@@ -737,8 +724,8 @@ const run = async () => {
         }
       },
       "{ id name email }"
-    );
-    const chosenUser = user;
+    )
+    const chosenUser = user
 
     // Creating a meme for review
     const meme = await prisma.mutation.createMeme(
@@ -751,9 +738,9 @@ const run = async () => {
         }
       },
       "{ id description url notSafeForWork }"
-    );
+    )
 
-    prettyLog(meme, "Meme");
+    prettyLog(meme, "Meme")
 
     // Create a review for the meme
     const review = await prisma.mutation.createReview(
@@ -773,7 +760,7 @@ const run = async () => {
         }
       },
       "{ score reviewer { name } meme { description } }"
-    );
+    )
     const review2 = await prisma.mutation.createReview(
       {
         data: {
@@ -791,18 +778,18 @@ const run = async () => {
         }
       },
       "{ score reviewer { name } meme { description } }"
-    );
+    )
 
-    prettyLog(review, "John's review");
-    prettyLog(review2, "Jack's review");
+    prettyLog(review, "John's review")
+    prettyLog(review2, "Jack's review")
 
     // Delete the user
-    console.log(`Deleting ${chosenUser.name}!`);
+    console.log(`Deleting ${chosenUser.name}!`)
     await prisma.mutation.deleteUser({
       where: {
         id: chosenUser.id
       }
-    });
+    })
 
     // Make sure the user's reviews were deleted
     const reviews = await prisma.query.reviews(
@@ -813,46 +800,46 @@ const run = async () => {
         score
       }
     `
-    );
-    prettyLog(reviews, "All reviews");
+    )
+    prettyLog(reviews, "All reviews")
 
-    console.log(`Checking if ${chosenUser.name} still has reviews`);
+    console.log(`Checking if ${chosenUser.name} still has reviews`)
     const userHasReviews = async userId =>
       prisma.exists.Review({
         reviewer: {
           id: userId
         }
-      });
+      })
     if (await userHasReviews(chosenUser.id)) {
       throw new Error(
         `The reviews for ${chosenUser.name} should have been deleted!`
-      );
+      )
     } else {
-      console.log("All is good!");
+      console.log("All is good!")
     }
 
-    console.log(`Checking if ${meme.description} still has reviews`);
+    console.log(`Checking if ${meme.description} still has reviews`)
     const memeHasReviews = async userId =>
       prisma.exists.Review({
         meme: {
           id: userId
         }
-      });
+      })
     if (await memeHasReviews(meme.id)) {
       throw new Error(
         `The reviews for ${meme.description} should have been deleted!`
-      );
+      )
     } else {
-      console.log("All is good!");
+      console.log("All is good!")
     }
   } catch (e) {
-    console.log(e);
+    console.log(e)
   }
-};
+}
 
-run();
+run()
 
-export default prisma;
+export default prisma
 ```
 </p>
 </details>
@@ -914,18 +901,13 @@ All is good!
 
 ##### Simple query
 
-<details><summary>Using `prisma-binding`, a typical resolver could look something like this</summary>
-<p>
+Using `prisma-binding`, a typical resolver could look something like this
 
 ```javascript
 users(parent, args, { prisma }, info) {
   return prisma.query.users(null, info)
 }
 ```
-</p>
-</details>
-
----
 
 The first argument is `null` because we have no **operation arguments**. In other words, the client can't modify the behaviour of this query by passing in `args`. The second argument should have the desired **selection set**. In the examples above, we hardcoded the selection set as the second argument. **Given that our clients are now in control of the incoming queries**, we leverage the `info` argument as the second parameter to our query. That ensures we fetch the fields asked for by the client! [After all, the desired selection set is right there on the info object](https://www.prisma.io/blog/graphql-server-basics-demystifying-the-info-argument-in-graphql-resolvers-6f26249f613a/)
 
@@ -993,7 +975,7 @@ type UserWhereInput {
 ```javascript
 opArgs.where = {
   OR: [{ name_contains: args.query }, { email_contains: args.query }]
-};
+}
 ```
 </p>
 </details>
@@ -1272,10 +1254,9 @@ secret: somethingsupersecret
 </p>
 </details>
 
-However, we still need to access the Prisma API from inside of our Node app. By adding the same `secret` informed in `.graphqlconfig.yaml` as we create the prisma instance we got that covered.
+However, we still need to access the Prisma API from inside of our Node app. By adding the same `secret` informed in `prisma.yml` as we create the prisma instance we got that covered.
 
-<details><summary>prisma.js</summary>
-<p>
+`prisma.js`
 
 ```javascript
 import { Prisma } from 'prisma-binding'
@@ -1289,10 +1270,7 @@ const prisma = new Prisma({
 export default prisma
 ```
 
-</p>
-</details>
-
-We also need to create an extension point on `graphql.config` so we can still use `graphql get-schema` to get our generated schema. Notice the `prisma` entry in the `extensions`. The `default` endpoint is our autogenerated Prisma API. The `app` endpoint is our custom Node app driven by the `prisma-binding`.
+We also need to create an extension point on `.graphqlconfig.yaml` so we can still use `graphql get-schema` to get our generated schema. Notice the `prisma` entry in the `extensions`. The `default` endpoint is our autogenerated Prisma API. The `app` endpoint is our custom Node app driven by the `prisma-binding`.
 
 <details><summary>.graphqlconfig.yaml</summary>
 <p>
@@ -1314,3 +1292,114 @@ projects:
 
 </p>
 </details>
+
+#### JWT authentication workflow
+
+For managing user authentication, JWT was chosen as the tool for the job. JWTs are awesome and are pretty solid in most of the popular languages. The tokens carry a **payload** that can be **decoded by anyone** and are **signed with a secret** only known to the server of the token, so **generating** and **validating** tokens is a breeze 💨
+
+The `login` mutation:
+> This takes care of the **validation** part
+
+```graphql
+  login(credentials: LoginCredentials!): AuthPayload!
+
+  input LoginCredentials {
+    email: String!
+    password: String!
+  }
+
+  type AuthPayload {
+    user: User!
+    token: String!
+  }
+```
+
+<details><summary>The resolver function</summary>
+<p>
+
+```javascript
+async login(
+  parent,
+  {
+    credentials: { email, password }
+  },
+  { prisma },
+  info
+) {
+  const user = await prisma.query.user({
+    where: {
+      email
+    }
+  })
+  const hashedPassword = user ? user.password : ''
+
+  const matchPassword = await bcrypt.compare(password, hashedPassword)
+
+  if (!user || !matchPassword) {
+    throw new Error('Invalid credentials!')
+  }
+
+  return {
+    user,
+    // createToken() keeps the JWT related stuff out of our resolvers
+    // We just need to give it a payload
+    token: createToken({ userId: user.id })
+  }
+}
+
+```
+
+</p>
+</details>
+
+---
+
+The return value of the `createUser` mutation also needs to return `AuthPayload` - `createUser` would probably be used in a user signup context. Given that, we need to give the new user a token so he can continue acting as himself.
+
+```graphql
+createUser(data: CreateUserInput!): AuthPayload!
+```
+
+<details><summary>The resolver function</summary>
+<p>
+
+```javascript
+async createUser(parent, { data }, { prisma }, info) {
+  const { password } = data
+  if (password.length < 8) {
+    throw new Error('Password must be 8 characters or longer.')
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  const user = await prisma.mutation.createUser({
+    data: {
+      ...data,
+      password: hashedPassword
+    }
+  })
+
+  return {
+    user,
+    token: createToken({ userId: user.id })
+  }
+}
+
+```
+
+</p>
+</details>
+
+---
+
+The `createToken` utility used in the resolvers above is pretty simple. It just signs our payload with a well kept and strong secret using the [popular `jsonwebtoken` package](https://www.npmjs.com/package/jsonwebtoken)
+
+`createToken()` keeps the JWT related stuff out of our resolvers. We just need to give it a payload 🎉
+
+```javascript
+export const createToken = payload => jwt.sign(payload, JWT_SECRET)
+```
+
+#### Protecting our Queries and Mutations
+
+TODO
