@@ -3,8 +3,10 @@ import jwt from 'jsonwebtoken'
 const JWT_SECRET = 'thisisasecret'
 
 export const getUserId = (request, requireAuth = true) => {
-  const { request: parsedRequest } = request
-  const authHeader = parsedRequest.headers.authorization
+  const { request: httpRequest, connection: socket } = request
+  const authHeader = httpRequest
+    ? httpRequest.headers.authorization
+    : socket.context.Authorization
 
   if (authHeader) {
     const token = authHeader.replace('Bearer ', '')
