@@ -133,7 +133,7 @@ networks:
 
 ##### Database agnostic
 
-With Prisma, we can use multiple databases in the same request! Currently, there is support for MySQL, Postgres, Amazon RDS and MongoDB. ElasticSearch, neo4j, Cassandra and Amazon DynamoDB are on their roadmap.
+With Prisma, we can use multiple databases, including SQL and NoSQL databases. Currently, there is support for MySQL, Postgres, Amazon RDS and MongoDB. ElasticSearch, neo4j, Cassandra and Amazon DynamoDB are on their roadmap.
 
 ##### Service abstraction
 
@@ -1402,4 +1402,114 @@ export const createToken = payload => jwt.sign(payload, JWT_SECRET)
 
 #### Protecting our Queries and Mutations
 
-TODO
+Being to able to extract the current user's ID from the incoming request was the first step in making sure our queries and mutations would operate properly. This was added to an `auth` utility file together with `createToken()`.
+
+`getUserId()` is able to recover the authorization token both from HTTP and websocket requests/connections and accepts and optional `requireAuth` argument for opting out of the error throwing. It defaults to `true`, blocking program execution by throwing an error if the token isn't valid, but passing `false` to `requireAuth` suppresses the error.
+
+<details><summary><code>auth.js</code></summary>
+<p>
+
+```javascript
+const JWT_SECRET = 'thisisasecret'
+
+export const getUserId = (request, requireAuth = true) => {
+  const { request: httpRequest, connection: socket } = request
+  const authHeader = httpRequest
+    ? httpRequest.headers.authorization
+    : socket.context.Authorization
+
+  if (authHeader) {
+    const token = authHeader.replace('Bearer ', '')
+    const decoded = jwt.verify(token, JWT_SECRET)
+
+    return decoded.userId
+  }
+
+  if (requireAuth) {
+    throw new Error('No auth token was given')
+  }
+
+  return null
+}
+
+...
+```
+
+</p>
+</details>
+
+This was injected via context, making it available to any resolver.
+
+<details><summary>Injecting on the context</summary>
+<p>
+
+```javascript
+import {
+  getUserId,
+  createToken,
+  hashPassword,
+  comparePassword
+} from './utils/auth'
+
+new GraphQLServer({
+  typeDefs: './src/schema.graphql',
+  resolvers,
+  context(request) {
+    return {
+      prisma,
+      request,
+      auth: {
+        getUserId,
+        createToken
+      }
+    }
+  }
+})
+```
+
+</p>
+</details>
+
+
+<details><summary><code>Mutation.js</code></summary>
+<p>
+
+```javascript
+createPost(
+  parent,
+  { data },
+  {
+    prisma,
+    request,
+    auth: { getUserId }
+  },
+  info
+) {
+  const userId = getUserId(request)
+
+  const { title, body, published } = data
+  return prisma.mutation.createPost(
+    {
+      data: {
+        title,
+        body,
+        published,
+        author: {
+          connect: {
+            id: userId
+          }
+        }
+      }
+    },
+    info
+  )
+}
+```
+
+</p>
+</details>
+
+
+//TODO
+
+- Provide other usages of the context in resolvers (like `createToken` for login or `isPostPublished` for `Post` related resolvers)
