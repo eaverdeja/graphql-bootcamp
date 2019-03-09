@@ -1,5 +1,3 @@
-import bcrypt from 'bcryptjs'
-
 const Mutation = {
   async login(
     parent,
@@ -8,7 +6,7 @@ const Mutation = {
     },
     {
       prisma,
-      auth: { createToken }
+      auth: { createToken, comparePassword }
     },
     info
   ) {
@@ -19,7 +17,7 @@ const Mutation = {
     })
     const hashedPassword = user ? user.password : ''
 
-    const matchPassword = await bcrypt.compare(password, hashedPassword)
+    const matchPassword = await comparePassword(password, hashedPassword)
 
     if (!user || !matchPassword) {
       throw new Error('Invalid credentials!')
@@ -35,16 +33,13 @@ const Mutation = {
     { data },
     {
       prisma,
-      auth: { createToken }
+      auth: { createToken, hashPassword }
     },
     info
   ) {
     const { password } = data
-    if (password.length < 8) {
-      throw new Error('Password must be 8 characters or longer.')
-    }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await hashPassword(password)
 
     const user = await prisma.mutation.createUser({
       data: {
@@ -72,17 +67,22 @@ const Mutation = {
 
     return prisma.mutation.deleteUser({ where: { id: userId } }, info)
   },
-  updateUser(
+  async updateUser(
     parent,
     { data },
     {
       prisma,
       request,
-      auth: { getUserId }
+      auth: { getUserId, hashPassword }
     },
     info
   ) {
     const userId = getUserId(request)
+
+    if (data.password) {
+      const hashedPassword = await hashPassword(data.password)
+      data.password = hashedPassword
+    }
 
     return prisma.mutation.updateUser({ where: { id: userId }, data }, info)
   },
