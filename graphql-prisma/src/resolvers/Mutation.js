@@ -171,7 +171,8 @@ const Mutation = {
     {
       prisma,
       request,
-      auth: { getUserId, isPostPublished }
+      auth: { getUserId },
+      postUtils: { isPostPublished }
     },
     info
   ) {
