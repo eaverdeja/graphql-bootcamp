@@ -1,7 +1,7 @@
 import { GraphQLServer, PubSub } from 'graphql-yoga'
 import db from './db'
 import prisma from './prisma'
-import { postBelongsToUser } from './utils/post'
+import { postBelongsToUser, isPostPublished } from './utils/post'
 import { commentBelongsToUser } from './utils/comment'
 import { getUserId, createToken } from './utils/auth'
 import { resolvers, fragmentReplacements } from './resolvers'
@@ -18,7 +18,8 @@ const server = new GraphQLServer({
       prisma,
       request,
       postUtils: {
-        postBelongsToUser
+        postBelongsToUser,
+        isPostPublished
       },
       commentUtils: {
         commentBelongsToUser

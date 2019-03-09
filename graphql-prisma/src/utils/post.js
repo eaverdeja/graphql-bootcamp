@@ -14,3 +14,9 @@ export const postBelongsToUser = async (postId, prisma, request) => {
     throw new Error("The desired post doesn't belong to the current user")
   }
 }
+
+export const isPostPublished = async (prisma, post) =>
+  prisma.exists.Post({
+    id: post,
+    published: true
+  })

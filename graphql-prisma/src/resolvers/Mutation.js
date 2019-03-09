@@ -135,13 +135,24 @@ const Mutation = {
     {
       prisma,
       request,
-      postUtils: { postBelongsToUser }
+      postUtils: { postBelongsToUser, isPostPublished }
     },
     info
   ) {
     await postBelongsToUser(id, prisma, request)
-
     const { title, body, published } = data
+
+    const currentlyPublished = await isPostPublished(prisma, id)
+    if (currentlyPublished && published === false) {
+      await prisma.mutation.deleteManyComments({
+        where: {
+          post: {
+            id
+          }
+        }
+      })
+    }
+
     return prisma.mutation.updatePost(
       {
         where: { id },
@@ -160,19 +171,16 @@ const Mutation = {
     {
       prisma,
       request,
-      auth: { getUserId }
+      auth: { getUserId, isPostPublished }
     },
     info
   ) {
     const userId = getUserId(request)
     const { text, post } = data
 
-    const isPostPublished = await prisma.exists.Post({
-      id: post,
-      published: true
-    })
+    const currentlyPublished = await isPostPublished(prisma, post)
 
-    if (!isPostPublished) {
+    if (!currentlyPublished) {
       throw new Error('Post is not published yet!')
     }
 
