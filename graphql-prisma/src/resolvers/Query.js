@@ -24,12 +24,31 @@ const Query = {
   comments(parent, args, { prisma }, info) {
     return prisma.query.comments(null, info)
   },
-  me() {
-    return {
-      id: '123098',
-      name: 'Mike',
-      email: 'mike@example.com'
+  async me(
+    parent,
+    args,
+    {
+      prisma,
+      request,
+      auth: { getUserId }
+    },
+    info
+  ) {
+    const userId = getUserId(request)
+    const user = await prisma.query.user(
+      {
+        where: {
+          id: userId
+        }
+      },
+      info
+    )
+
+    if (!user) {
+      throw new Error('User not found!')
     }
+
+    return user
   },
   async post(
     parent,
