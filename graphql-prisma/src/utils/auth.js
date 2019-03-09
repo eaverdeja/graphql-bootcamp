@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = 'thisisasecret'
+const TOKEN_EXPIRES_IN = '7 days'
 
 export const getUserId = (request, requireAuth = true) => {
   const { request: httpRequest, connection: socket } = request
@@ -22,4 +23,5 @@ export const getUserId = (request, requireAuth = true) => {
   return null
 }
 
-export const createToken = payload => jwt.sign(payload, JWT_SECRET)
+export const createToken = payload =>
+  jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN })
