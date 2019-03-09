@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = 'thisisasecret'
@@ -25,3 +26,13 @@ export const getUserId = (request, requireAuth = true) => {
 
 export const createToken = payload =>
   jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN })
+
+export const hashPassword = async password => {
+  if (password.length < 8) {
+    throw new Error('Password must be 8 characters or longer.')
+  }
+
+  return bcrypt.hash(password, 10)
+}
+
+export const comparePassword = bcrypt.compare

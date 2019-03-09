@@ -3,7 +3,12 @@ import db from './db'
 import prisma from './prisma'
 import { postBelongsToUser, isPostPublished } from './utils/post'
 import { commentBelongsToUser } from './utils/comment'
-import { getUserId, createToken } from './utils/auth'
+import {
+  getUserId,
+  createToken,
+  hashPassword,
+  comparePassword
+} from './utils/auth'
 import { resolvers, fragmentReplacements } from './resolvers'
 
 const pubsub = new PubSub()
@@ -26,7 +31,9 @@ const server = new GraphQLServer({
       },
       auth: {
         getUserId,
-        createToken
+        createToken,
+        hashPassword,
+        comparePassword
       }
     }
   },
