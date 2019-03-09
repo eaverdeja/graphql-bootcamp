@@ -24,6 +24,33 @@ const Subscription = {
       }
       return prisma.subscription.post(publishedPosts, info)
     }
+  },
+  myPost: {
+    subscribe(
+      parent,
+      args,
+      {
+        prisma,
+        request,
+        auth: { getUserId }
+      },
+      info
+    ) {
+      const userId = getUserId(request)
+
+      return prisma.subscription.post(
+        {
+          where: {
+            node: {
+              author: {
+                id: userId
+              }
+            }
+          }
+        },
+        info
+      )
+    }
   }
 }
 
