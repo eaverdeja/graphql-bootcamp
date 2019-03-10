@@ -20,7 +20,7 @@
     - [Mutations](#mutations-1)
     - [Final touch - Subscriptions](#final-touch---subscriptions)
 
-> Prisma is an amazing tool, but it still is in it's early days. [This post](https://dev.to/sgwilym/how-far-can-prisma-take-you-in-february-2019-3chp) points out some of the limitations Prisma has, both as a tool and as an organization. Nicolas Burk from Prisma [replied to the post with a comment](https://dev.to/nikolasburk/comment/8j8f) addressing the issues pointed out. Seems like they are in the right direction. Or rather, I hope ;)
+> Prisma is an amazing tool, but it still is in it's early days. [This post](https://dev.to/sgwilym/how-far-can-prisma-take-you-in-february-2019-3chp) points out some of the limitations Prisma has, both as a tool and as an organization. Nikolas Burk from Prisma [replied to the post with a comment](https://dev.to/nikolasburk/comment/8j8f) addressing the issues pointed out. Seems like they are in the right direction. Or rather, I hope ;)
 
 ### Database layer
 
