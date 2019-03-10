@@ -1,6 +1,14 @@
 type Query {
-  users(query: String, first: Int, skip: Int): [User!]!
-  posts(query: String, first: Int, skip: Int): [Post!]!
+  users(
+    query: String
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+  ): [User!]!
+  posts(
+    query: String
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+  ): [Post!]!
   myPosts(query: String): [Post!]!
   comments: [Comment!]!
   me: User!
@@ -62,6 +70,15 @@ input CreateCommentInput {
 
 input UpdateCommentInput {
   text: String
+}
+
+input SimplePaginationInput {
+  first: Int!
+  skip: Int!
+}
+
+input CursorPaginationInput {
+  after: String!
 }
 
 type User {

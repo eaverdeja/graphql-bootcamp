@@ -3,6 +3,7 @@ import db from './db'
 import prisma from './prisma'
 import { postBelongsToUser, isPostPublished } from './utils/post'
 import { commentBelongsToUser } from './utils/comment'
+import { applyPagination } from './utils/pagination'
 import {
   getUserId,
   createToken,
@@ -34,6 +35,9 @@ const server = new GraphQLServer({
         createToken,
         hashPassword,
         comparePassword
+      },
+      pagination: {
+        applyPagination
       }
     }
   },

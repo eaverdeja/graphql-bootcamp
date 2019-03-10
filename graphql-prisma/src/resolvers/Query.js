@@ -1,6 +1,15 @@
 const Query = {
-  users(parent, { query, first, skip }, { prisma }, info) {
-    const opArgs = {}
+  users(
+    parent,
+    args,
+    {
+      prisma,
+      pagination: { applyPagination }
+    },
+    info
+  ) {
+    const opArgs = { ...applyPagination(args) }
+    const { query } = args
 
     if (query) {
       opArgs.where = {
@@ -8,29 +17,29 @@ const Query = {
       }
     }
 
-    if (first && skip) {
-      opArgs.first = first
-      opArgs.skip = skip
-    }
-
     return prisma.query.users(opArgs, info)
   },
-  posts(parent, { query, first, skip }, { prisma }, info) {
+  posts(
+    parent,
+    args,
+    {
+      prisma,
+      pagination: { applyPagination }
+    },
+    info
+  ) {
     const opArgs = {
       where: {
         published: true
-      }
+      },
+      ...applyPagination(args)
     }
+    const { query } = args
 
     if (query) {
       opArgs.where = {
         OR: [{ title_contains: query }, { body_contains: query }]
       }
-    }
-
-    if (first && skip) {
-      opArgs.first = first
-      opArgs.skip = skip
     }
 
     return prisma.query.posts(opArgs, info)
