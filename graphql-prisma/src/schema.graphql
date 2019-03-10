@@ -9,8 +9,15 @@ type Query {
     page: SimplePaginationInput
     cursor: CursorPaginationInput
   ): [Post!]!
-  myPosts(query: String): [Post!]!
-  comments: [Comment!]!
+  myPosts(
+    query: String
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+  ): [Post!]!
+  comments(
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+  ): [Comment!]!
   me: User!
   post(id: ID!): Post!
 }

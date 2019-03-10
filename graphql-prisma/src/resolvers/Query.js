@@ -50,7 +50,8 @@ const Query = {
     {
       prisma,
       request,
-      auth: { getUserId }
+      auth: { getUserId },
+      pagination: { applyPagination }
     },
     info
   ) {
@@ -60,7 +61,8 @@ const Query = {
         author: {
           id: userId
         }
-      }
+      },
+      ...applyPagination(args)
     }
 
     if (args.query) {
@@ -72,8 +74,19 @@ const Query = {
 
     return prisma.query.posts(opArgs, info)
   },
-  comments(parent, args, { prisma }, info) {
-    return prisma.query.comments(null, info)
+  comments(
+    parent,
+    args,
+    {
+      prisma,
+      pagination: { applyPagination }
+    },
+    info
+  ) {
+    const pagination = applyPagination(args)
+    const opArgs = pagination || null
+
+    return prisma.query.comments(opArgs, info)
   },
   async me(
     parent,
