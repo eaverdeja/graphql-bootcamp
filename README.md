@@ -49,6 +49,9 @@ The course is outlined in a few different modules. I'll stick to the same separa
     - [Mutations](#mutations-1)
     - [Final touch - Subscriptions](#final-touch---subscriptions)
 - [Authentication](#authentication)
+  - [Protecting the Prisma API](#protecting-the-prisma-api)
+  - [JWT authentication workflow](#jwt-authentication-workflow)
+  - [Protecting our Queries and Mutations](#protecting-our-queries-and-mutations)    
 
 ### Warm Up
 
@@ -1403,7 +1406,7 @@ export const createToken = payload => jwt.sign(payload, JWT_SECRET)
 
 Being to able to extract the current user's ID from the incoming request was the first step in making sure our queries and mutations would operate properly. This was added to an `auth` utility file together with `createToken()`.
 
-`getUserId()` is able to recover the authorization token both from HTTP and websocket requests/c  onnections and accepts and optional `requireAuth` argument for opting out of the error throwing. It defaults to `true`, blocking program execution by throwing an error if the token isn't valid, but passing `false` to `requireAuth` suppresses the error.
+`getUserId()` is able to recover the authorization token both from HTTP and websocket requests/connections and accepts an optional `requireAuth` argument for opting out of the error throwing. It defaults to `true`, blocking program execution by throwing an error if the token isn't valid, but passing `false` to `requireAuth` suppresses the error.
 
 <details><summary><code>auth.js</code></summary>
 <p>
