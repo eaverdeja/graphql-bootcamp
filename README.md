@@ -49,7 +49,6 @@ The course is outlined in a few different modules. I'll stick to the same separa
     - [Mutations](#mutations-1)
     - [Final touch - Subscriptions](#final-touch---subscriptions)
 - [Authentication](#authentication)
-  - [Protecting the Prisma API](#protecting-the-prisma-api)
 
 ### Warm Up
 
@@ -1404,7 +1403,7 @@ export const createToken = payload => jwt.sign(payload, JWT_SECRET)
 
 Being to able to extract the current user's ID from the incoming request was the first step in making sure our queries and mutations would operate properly. This was added to an `auth` utility file together with `createToken()`.
 
-`getUserId()` is able to recover the authorization token both from HTTP and websocket requests/connections and accepts and optional `requireAuth` argument for opting out of the error throwing. It defaults to `true`, blocking program execution by throwing an error if the token isn't valid, but passing `false` to `requireAuth` suppresses the error.
+`getUserId()` is able to recover the authorization token both from HTTP and websocket requests/c  onnections and accepts and optional `requireAuth` argument for opting out of the error throwing. It defaults to `true`, blocking program execution by throwing an error if the token isn't valid, but passing `false` to `requireAuth` suppresses the error.
 
 <details><summary><code>auth.js</code></summary>
 <p>
@@ -1509,7 +1508,107 @@ createPost(
 </p>
 </details>
 
+Utility files were also created for the `Post` and `Comment` types. These files export functions that encapsulate some of the Prisma functionality and error handling, keeping our resolver DRY.
 
-//TODO
+<details><summary><code>utils/post.js</code></summary>
+<p>
 
-- Provide other usages of the context in resolvers (like `createToken` for login or `isPostPublished` for `Post` related resolvers)
+```javascript
+import { getUserId } from './auth'
+
+export const postBelongsToUser = async (postId, prisma, request) => {
+  const userId = getUserId(request)
+
+  const match = await prisma.exists.Post({
+    id: postId,
+    author: {
+      id: userId
+    }
+  })
+
+  if (!match) {
+    throw new Error("The desired post doesn't belong to the current user")
+  }
+}
+
+export const isPostPublished = async (prisma, post) =>
+  prisma.exists.Post({
+    id: post,
+    published: true
+  })
+```
+
+</p>
+</details>
+
+
+These utility functions are injected via context and have a simple use by the resolvers:
+
+<details><summary><code>Mutation.js</code></summary>
+<p>
+
+```javascript
+async deletePost(
+  parent,
+  { id },
+  {
+    prisma,
+    request,
+    postUtils: { postBelongsToUser }
+  },
+  info
+) {
+  await postBelongsToUser(id, prisma, request)
+
+  return prisma.mutation.deletePost({ where: { id } }, info)
+}
+
+...
+
+async createComment(
+  parent,
+  { data },
+  {
+    prisma,
+    request,
+    auth: { getUserId },
+    postUtils: { isPostPublished }
+  },
+  info
+) {
+  const userId = getUserId(request)
+  const { text, post } = data
+
+  const currentlyPublished = await isPostPublished(prisma, post)
+
+  if (!currentlyPublished) {
+    throw new Error('Post is not published yet!')
+  }
+
+  return prisma.mutation.createComment(
+    {
+      data: {
+        text,
+        author: {
+          connect: {
+            id: userId
+          }
+        },
+        post: {
+          connect: {
+            id: post
+          }
+        }
+      }
+    },
+    info
+  )
+}
+```
+
+</p>
+</details>
+
+Before deleting a post, we check if it belongs to the currently logged in user. The `deletePost` mutation simply `await`s the execution of the `postBelongsToUser` utility function. If no error was thrown, the program can resume it's flow and delete the post. Before creating a comment, we check if the desired post is already published. If it's not, the resolver throws an error.
+
+> I guess these utility functions could live in the type resolvers (`resolvers/Post.js` for example, seen as they are used solely on the resolver functions) and that they should have clearer responsibilities. Should error throwing/handling by done in these utility functions or in the resolvers? Maybe these are `context x project x team` questions and I won't worry so much about them 😄
