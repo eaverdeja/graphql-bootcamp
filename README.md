@@ -1,6 +1,13 @@
-# GraphQL Basics
+# GraphQL Bootcamp
 
-Things I learned:
+- [Warm Up](#warm-up)
+- [GraphQL Basics](#graphql-basics)  
+
+## Warm Up
 
 - [Babel - Try it out](https://babeljs.io/repl)
- - We can tinker with the babel config straight from the browser! 
+  - We can tinker with the babel config straight from the browser!
+
+## GraphQL Basics
+
+- TODO
