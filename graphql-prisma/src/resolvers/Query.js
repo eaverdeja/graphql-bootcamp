@@ -1,26 +1,36 @@
 const Query = {
-  users(parent, args, { prisma }, info) {
+  users(parent, { query, first, skip }, { prisma }, info) {
     const opArgs = {}
 
-    if (args.query) {
+    if (query) {
       opArgs.where = {
-        OR: [{ name_contains: args.query }, { email_contains: args.query }]
+        OR: [{ name_contains: query }, { email_contains: query }]
       }
+    }
+
+    if (first && skip) {
+      opArgs.first = first
+      opArgs.skip = skip
     }
 
     return prisma.query.users(opArgs, info)
   },
-  posts(parent, args, { prisma }, info) {
+  posts(parent, { query, first, skip }, { prisma }, info) {
     const opArgs = {
       where: {
         published: true
       }
     }
 
-    if (args.query) {
+    if (query) {
       opArgs.where = {
-        OR: [{ title_contains: args.query }, { body_contains: args.query }]
+        OR: [{ title_contains: query }, { body_contains: query }]
       }
+    }
+
+    if (first && skip) {
+      opArgs.first = first
+      opArgs.skip = skip
     }
 
     return prisma.query.posts(opArgs, info)
