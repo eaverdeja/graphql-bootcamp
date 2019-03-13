@@ -94,6 +94,8 @@ type User {
   email: String
   posts: [Post!]
   comments: [Comment!]!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type AuthPayload {
@@ -108,6 +110,8 @@ type Post {
   published: Boolean!
   author: User!
   comments: [Comment!]!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type Comment {
@@ -115,6 +119,8 @@ type Comment {
   text: String!
   author: User!
   post: Post!
+  createdAt: String!
+  updatedAt: String!
 }
 
 enum MutationType {
