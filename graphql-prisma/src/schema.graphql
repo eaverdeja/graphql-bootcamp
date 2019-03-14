@@ -1,22 +1,28 @@
+# import UserOrderByInput, PostOrderByInput, CommentOrderByInput from './generated/schema.graphql'
+
 type Query {
   users(
     query: String
     page: SimplePaginationInput
     cursor: CursorPaginationInput
+    orderBy: UserOrderByInput
   ): [User!]!
   posts(
     query: String
     page: SimplePaginationInput
     cursor: CursorPaginationInput
+    orderBy: PostOrderByInput
   ): [Post!]!
   myPosts(
     query: String
     page: SimplePaginationInput
     cursor: CursorPaginationInput
+    orderBy: PostOrderByInput
   ): [Post!]!
   comments(
     page: SimplePaginationInput
     cursor: CursorPaginationInput
+    orderBy: CommentOrderByInput
   ): [Comment!]!
   me: User!
   post(id: ID!): Post!
