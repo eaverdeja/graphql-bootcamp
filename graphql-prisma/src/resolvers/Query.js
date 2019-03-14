@@ -8,8 +8,8 @@ const Query = {
     },
     info
   ) {
-    const opArgs = { ...applyPagination(args) }
-    const { query } = args
+    const { query, orderBy } = args
+    const opArgs = { orderBy, ...applyPagination(args) }
 
     if (query) {
       opArgs.where = {
@@ -28,13 +28,14 @@ const Query = {
     },
     info
   ) {
+    const { query, orderBy } = args
     const opArgs = {
       where: {
         published: true
       },
+      orderBy,
       ...applyPagination(args)
     }
-    const { query } = args
 
     if (query) {
       opArgs.where = {
@@ -56,20 +57,19 @@ const Query = {
     info
   ) {
     const userId = getUserId(request)
+    const { query, orderBy } = args
     const opArgs = {
       where: {
         author: {
           id: userId
         }
       },
+      orderBy,
       ...applyPagination(args)
     }
 
-    if (args.query) {
-      opArgs.where.OR = [
-        { title_contains: args.query },
-        { body_contains: args.query }
-      ]
+    if (query) {
+      opArgs.where.OR = [{ title_contains: query }, { body_contains: query }]
     }
 
     return prisma.query.posts(opArgs, info)
@@ -83,8 +83,11 @@ const Query = {
     },
     info
   ) {
-    const pagination = applyPagination(args)
-    const opArgs = pagination || null
+    const { orderBy } = args
+    const opArgs = {
+      orderBy,
+      ...applyPagination(args)
+    }
 
     return prisma.query.comments(opArgs, info)
   },
