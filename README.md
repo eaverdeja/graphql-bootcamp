@@ -43,6 +43,8 @@ Prisma gives us the [`after` and `before` arguments](https://www.prisma.io/docs/
 
 Our application schema should leverage what is relevant for our domain needs. Given that, reverse based pagination isn't that necessary and we'll leave it alone.
 
+Unfortunately, ordering capabilities aren't full blown yet (check out [1](https://github.com/prisma/prisma/issues/62) and [2](https://github.com/prisma/prisma/issues/95)). We wait patiently for these two very important features!
+
 #### Changes to our schema
 
 Most of our queries were altered to support pagination. Custom inputs were created to keep the schema DRY:
@@ -134,6 +136,83 @@ users(
 ) {
   const opArgs = { ...applyPagination(args) }
   const { query } = args
+
+  if (query) {
+    opArgs.where = {
+      OR: [{ name_contains: query }, { email_contains: query }]
+    }
+  }
+
+  return prisma.query.users(opArgs, info)
+}
+```
+
+</p>
+</details>
+
+### Sorting in the database schema
+
+In the database schema, [Prisma gives us ascending and descending sorting operators for each of the scalar fields defined in the types of our datamodel](https://www.prisma.io/docs/1.27/prisma-graphql-api/reference/queries-qwe1/#ordering).
+
+With ordering capabilities inherited from Prisma, our `Query` root type looks like this:
+
+<details><summary><code>schema.graphql</code></summary>
+<p>
+
+```graphql
+# import UserOrderByInput, PostOrderByInput, CommentOrderByInput from './generated/schema.graphql'
+
+type Query {
+  users(
+    query: String
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+    orderBy: UserOrderByInput
+  ): [User!]!
+  posts(
+    query: String
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+    orderBy: PostOrderByInput
+  ): [Post!]!
+  myPosts(
+    query: String
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+    orderBy: PostOrderByInput
+  ): [Post!]!
+  comments(
+    page: SimplePaginationInput
+    cursor: CursorPaginationInput
+    orderBy: CommentOrderByInput
+  ): [Comment!]!
+  me: User!
+  post(id: ID!): Post!
+}
+```
+
+</p>
+</details>
+
+---
+
+Leveraging the orderBy argument in our resolver is quite simple (compare it to the snippet posted above). Destructuring it from the received arguments and adding it to the operation arguments is all it takes.
+
+<details><summary><code>Query.js</code></summary>
+<p>
+
+```javascript
+users(
+  parent,
+  args,
+  {
+    prisma,
+    pagination: { applyPagination }
+  },
+  info
+) {
+  const { query, orderBy } = args
+  const opArgs = { orderBy, ...applyPagination(args) }
 
   if (query) {
     opArgs.where = {
