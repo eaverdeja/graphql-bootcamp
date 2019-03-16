@@ -1,5 +1,13 @@
 # GraphQL Bootcamp - Production Deployment
 
+[GraphQL Bootcamp - Production Deployment](#graphql-bootcamp---production-deployment)
+- [Production Deployment](#production-deployment)
+  - [Production Database](#production-database)
+  - [Prisma Service](#prisma-service)
+    - [Deploying](#deploying)
+    - [Exploring](#exploring)
+  - [Deploying our Node app](#deploying-our-node-app)
+  - [This is never painfree](#this-is-never-painfree)
 
 ## Production Deployment
 
@@ -34,7 +42,7 @@ The endpoint value in `prisma.yml` should be as such:
 endpoint: ${env:PRISMA_ENDPOINT}
 ```
 
-By providing the `PRISMA_ENDPOINT` environment value, Prisma injects whenever it deploys a service. To do that, we have to **specify the path to our `.env` file** when deploying with Prisma:
+By providing the `PRISMA_ENDPOINT` environment value, Prisma injects it whenever it deploys a service. To do that, we have to **specify the path to our `.env` file** when deploying with Prisma:
 
 ```bash
 # Inside the /prisma folder
@@ -48,7 +56,7 @@ $ prisma deploy -e ../config/prod.env
 
 Before deploying to the production environment, we have to tell the Prisma CLI who we are. There's a nifty `prisma login` command to help us do so. It opens up a browser window and asks us for some permissions, authenticating us on the terminal as soon as we grant the permissions.
 
-Creating the `dev.env` is pretty easy: we just use the `http://localhost:4466` we were already using. The `prod.env` file is a bit trickier since it needs the production URL, which we don't have yet. Deploying to production to the Prisma CLI takes this into account, prompting us to choose the server when we are deploying without a configured endpoint. After the deployment process, Prisma will write the correct endpoint in our `prisma.yml` file. Cutting it from there and pasting it into `prod.env` fixes our problem!
+Creating the `dev.env` file is pretty easy: we just use the `http://localhost:4466` we were already using. The `prod.env` file is a bit trickier since it needs the production URL, which we don't have yet. Deploying to production to the Prisma CLI takes this into account, prompting us to choose the server when we are deploying without a configured endpoint. After the deployment process, Prisma will write the correct endpoint in our `prisma.yml` file. Cutting it from there and pasting it into `prod.env` fixes our problem!
 
 #### Exploring
 
@@ -58,7 +66,7 @@ Luckily, from the Prisma Cloud UI we have a link that opens up a Playground inst
 
 In the version of Prisma Cloud shown by Andrew, the UI had a **Data Browser** tab. That was replaced by a **Prisma Admin** tab, serving the same purpose though with a different interface. It gives us a nice little mix of a GraphQL query runner (like a mini playground) and a database explorer.
 
-Lastly, Prisma Cloud offers us a **Metrics** tab for monitoring requests made to our production instance and **Deployment History** tab showing us details on what was changed in each of our deployments.
+Lastly, Prisma Cloud offers us a **Metrics** tab for monitoring requests made to our production instance and a **Deployment History** tab showing us details on what was changed in each of our deployments.
 
 ### Deploying our Node app
 
@@ -74,7 +82,7 @@ Similar to the Prisma CLI, we have a login command:
 $ heroku login
 ```
 
-After that, enabling our server to listen to the port dynamically was necessary. [`GraphQL Yoga` has an API ready for this](https://github.com/prisma/graphql-yoga#startoptions-options-callback-options-options--void----null-promisevoid):
+After executing the above command, enabling our server to listen to the port dynamically was necessary. [`GraphQL Yoga` has an API ready for this](https://github.com/prisma/graphql-yoga#startoptions-options-callback-options-options--void----null-promisevoid):
 
 ```javascript
 const server = new GraphQLServer({ ... })
@@ -104,12 +112,14 @@ const prisma = new Prisma({
 
 With those changes, our development server still works 😏.
 
-For production it's a bit more complicated. Usage of `babel-node` is only recommended for development purposes. Given that, we need to run our `start` script using only `node`. To do that, we need to use `babel` in a prior moment so that our `.js` files can be transpiled and executed properly by `node`. Given that we used modern features (like async/await) in our project, [there is one little gotcha](https://babeljs.io/docs/en/babel-polyfill). We need to install `@babel/polyfill` and enable it in our project by importing it in our `index.js` file, before all other imports:
+For production it's a bit more complicated. Usage of `babel-node` is only recommended for development purposes. Given that, we need to run our `start` script using only `node`. To do that, we need to use `babel` in a moment moment prior to running our app so that our `.js` files can be transpiled and executed properly by `node`. Given that we used modern features (like async/await) in our project, [there is also one little gotcha](https://babeljs.io/docs/en/babel-polyfill). We need to install `@babel/polyfill` and enable it in our project by importing it in our `index.js` file, before all other imports:
 
 ```js
-import '@babel/polyfill'
+import '@babel/polyfill/noConflict'
 ... // rest of index.js
 ```
+
+> `babel` recommends importing '@babel/polyfill/noConflict' when running the `dev` server. Since the polyfill is baked in `babel-node`, we don't have to worry about it, but we also shouldn't import it twice and create conflicts!
 
 To inform Heroku it should use `babel` to transpile everything before actually trying to run our app, we have to create a postbuild hook in `package.json`:
 
@@ -120,7 +130,7 @@ To inform Heroku it should use `babel` to transpile everything before actually t
 }
 ```
 
-We use the `--copy-files` flag so our `.graphql` files get copied over.
+> We use the `--copy-files` flag so our `.graphql` files get copied over.
 
 Finally, our `start` script looks like this:
 
@@ -160,4 +170,16 @@ To tell Heroku about our `PRISMA_ENDPOINT` we use the `heroku config` CLI comman
 $ heroku config:set PRISMA_ENDPOINT=https://gql-bootcamp-c33a512316.herokuapp.com/gql-bootcamp/prod --app=thawing-earth-50309
 ```
 
-Running `$ git push heroku master` starts the deployment process.
+Running `$ git push heroku master` starts the deployment process. Note that this uses the local `master` branch. In my case, I was working on the `module/production-deployment` branch, so my command looked something like:
+
+```bash
+$ git push heroku module/production-deployment:master
+```
+
+The syntax used above is documented [here](https://devcenter.heroku.com/articles/git#deploying-from-a-branch-besides-master)
+
+### This is never painfree
+
+Making code production-ready doesn't necessarily involve drastic code changes, but I always find the process a bit *rocky*. Commits [1](https://github.com/eaverdeja/graphql-bootcamp/commit/74d586e94f8b14e2dbd1c5eea5d35eb5a8229a82), [2](https://github.com/eaverdeja/graphql-bootcamp/commit/578b28a7a890cedaed720645f7ab93b701904b1d), [3](https://github.com/eaverdeja/graphql-bootcamp/commit/17e21fc0e9f1463aafaeadaecdbc00fabe0bf9a7), [4](https://github.com/eaverdeja/graphql-bootcamp/commit/f0bf1e198b2ce1016a44e1f39dfdafc61bc00dcc), [5](https://github.com/eaverdeja/graphql-bootcamp/commit/fa0ac58cf44385dfb2657a15071e407702b3ed58) and [6](https://github.com/eaverdeja/graphql-bootcamp/commit/98f41b681f2b657ff52f92e3618c4d2480a613eb) show this 🙁
+
+In the end, it's all good! We have a live GraphQL endpoint on Heroku 🏆
