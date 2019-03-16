@@ -1,15 +1,12 @@
 {
   "name": "graphql-bootcamp",
-  "version": "1.0.0",
   "description": "GraphQL Bootcamp with Andrew Mead @ Udemy",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eaverdeja/graphql-bootcamp.git"
   },
+  "homepage": "https://github.com/eaverdeja/graphql-bootcamp#readme",
   "keywords": [
     "GraphQL",
     "Andrew",
@@ -17,8 +14,53 @@
   ],
   "author": "Eduardo Verdeja <eaverdeja@gmail.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/eaverdeja/graphql-bootcamp/issues"
+  "main": "index.js",
+  "scripts": {
+    "start": "env-cmd ./config/prod.env node dist/index.js",
+    "heroku-postbuild": "babel src --out-dir dist --copy-files",
+    "dev": "env-cmd ./config/dev.env nodemon src/index.js --ext js,graphql --exec babel-node",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "get-schema": "graphql get-schema -p graphql-bootcamp",
+    "lint:fix": "eslint ./src --fix",
+    "lint:dry": "eslint ./src --fix-dry-run",
+    "prettier": "prettier --config ./.prettierrc ./src/**/*.js",
+    "prettier:write": "npm run prettier -- --write",
+    "prettier:check": "npm run prettier -- --check",
+    "prettier:verify": "npm run prettier -- --debug-check"
   },
-  "homepage": "https://github.com/eaverdeja/graphql-bootcamp#readme"
+  "dependencies": {
+    "@babel/polyfill": "^7.2.5",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "bcryptjs": "^2.4.3",
+    "env-cmd": "^8.0.2",
+    "graphql-yoga": "^1.14.10",
+    "jsonwebtoken": "^8.5.0",
+    "prisma-binding": "^2.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.5",
+    "nodemon": "^1.17.5",
+    "prettier": "^1.16.4",
+    "pretty-quick": "^1.10.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "pretty-quick --staged",
+      "eslint src/ --fix",
+      "git add"
+    ]
+  }
 }

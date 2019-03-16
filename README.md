@@ -1,228 +1,163 @@
-# GraphQL Bootcamp - Pagination and Sorting
+# GraphQL Bootcamp - Production Deployment
 
-- [Pagination and Sorting](#pagination-and-sorting)
-  - [Pagination in the database schema](#pagination-in-the-database-schema)
-      - [Offset based pagination](#offset-based-pagination)
-      - [Cursor based pagination](#cursor-based-pagination)
-  - [Pagination in the application schema](#pagination-in-the-application-schema)
-      - [Changes to our schema](#changes-to-our-schema)
 
-## Pagination and Sorting
+## Production Deployment
 
-Pagination and sorting are key functionalities of production-ready applications. As the number of records in our database grows, limiting and sorting the records becomes a must. I won't explain the basics of pagination here ([this article is nice though](https://slack.engineering/evolving-api-pagination-at-slack-1c1f644f8e12)). My goal is simply to state some of the solutions Prisma offers us for solving pagination issues and how we can use them.
+To enable our app to run in production, Andrew outlined three basic steps:
 
-### Pagination in the database schema
+1. Configure our production database
+1. Configure our production Prisma service
+1. Configure our production Node app
 
-In the database schema, [Prisma gives us different pagination approaches](https://www.prisma.io/docs/prisma-graphql-api/reference/queries-qwe1/#pagination) to work with lists of results.
+The main service we're using here is [Prisma Cloud](https://www.prisma.io/cloud). It makes the deployment process easier and gives us a nice databrowser and metrics and top of our production instance.
 
-The available query arguments look like this for the `User` type defined in `datamodel.prisma`:
+I thought about posting pictures of the web interface for this whole process, but I will not for two reasons:
 
-```graphql
-users(
-  where: UserWhereInput
-  orderBy: UserOrderByInput
-  skip: Int
-  after: String
-  before: String
-  first: Int
-  last: Int
-): [User]!
+1. It's already dead simple;
+1. Prisma's web GUI is changing frequently;
+
+### Production Database
+
+We can spin up a production DB by **creating a new server in Prisma Cloud**. Currently, they integrate automatically with Heroku. More vendors to come (AWS, Azure, Google Cloud)! Note that multiple vendors could satisfy our needs. We just need to host a Postgres database and a Docker container for the Prisma service. Lot's of vendors offer that for us 😉
+
+Prisma's form wizard walks us through creating a database and server on Heroku a in a few simple steps. Connecting the production database to PgAdmin can be done in a similar fashion to what we did before. In the Heroku Dashboard, we have access to the database credentials for our production instance.
+
+### Prisma Service
+
+#### Deploying
+
+To configure our Prisma service for production deployment, we need to edit the `prisma.yml` file. While in development, we had the `endpoint` value hardcoded as `http://localhost:4466`. To fix this, two `.env` files were created, each with the relevant endpoint value.
+
+The endpoint value in `prisma.yml` should be as such:
+
+```yml
+endpoint: ${env:PRISMA_ENDPOINT}
 ```
 
-#### Offset based pagination
+By providing the `PRISMA_ENDPOINT` environment value, Prisma injects whenever it deploys a service. To do that, we have to **specify the path to our `.env` file** when deploying with Prisma:
 
-We can do offset based pagination by using the `first` and `skip` arguments provided by Prisma. We can also do reverse based pagination with the `last` argument. Cool!
+```bash
+# Inside the /prisma folder
 
-#### Cursor based pagination
+# For dev deploys
+$ prisma deploy -e ../config/dev.env
 
-Prisma also supports cursor based pagination. Normally, cursors reference properly indexed columns at the database level, enabling more efficient queries. Apart from that, it doesn't have one of the caveats offset based pagination has: **offset based pagination can skip or return duplicate results if the database has a high write access given the page window reference is lost**.
-
-Prisma gives us the [`after` and `before` arguments](https://www.prisma.io/docs/prisma-graphql-api/reference/queries-qwe1/#seeking-forward-and-backward-with-first-and-last) for specifying our cursor. `after` is used for specifying our starting node and should only be used together with `first`. `before` is also used for specifying our starting node, but should only be used together with `last`. The docs referenced above have nice examples on the proper usage of the `first`, `last`, `after`, `before` and `skip` arguments. 
-
-### Pagination in the application schema
-
-Our application schema should leverage what is relevant for our domain needs. Given that, reverse based pagination isn't that necessary and we'll leave it alone.
-
-Unfortunately, ordering capabilities aren't full blown yet (check out [1](https://github.com/prisma/prisma/issues/62) and [2](https://github.com/prisma/prisma/issues/95)). We wait patiently for these two very important features!
-
-#### Changes to our schema
-
-Most of our queries were altered to support pagination. Custom inputs were created to keep the schema DRY:
-
-<details><summary><code>schema.graphql</code></summary>
-<p>
-
-```graphql
-type Query {
-  users(
-    query: String
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-  ): [User!]!
-  posts(
-    query: String
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-  ): [Post!]!
-  myPosts(
-    query: String
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-  ): [Post!]!
-  comments(
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-  ): [Comment!]!
-  me: User!
-  post(id: ID!): Post!
-}
-
-...
-
-input SimplePaginationInput {
-  first: Int!
-  skip: Int!
-}
-
-input CursorPaginationInput {
-  after: String!
-}
+# For prod deploys
+$ prisma deploy -e ../config/prod.env
 ```
 
-</p>
-</details>
+Before deploying to the production environment, we have to tell the Prisma CLI who we are. There's a nifty `prisma login` command to help us do so. It opens up a browser window and asks us for some permissions, authenticating us on the terminal as soon as we grant the permissions.
 
----
+Creating the `dev.env` is pretty easy: we just use the `http://localhost:4466` we were already using. The `prod.env` file is a bit trickier since it needs the production URL, which we don't have yet. Deploying to production to the Prisma CLI takes this into account, prompting us to choose the server when we are deploying without a configured endpoint. After the deployment process, Prisma will write the correct endpoint in our `prisma.yml` file. Cutting it from there and pasting it into `prod.env` fixes our problem!
 
-To use the pagination arguments in our resolvers, an utility function was created and injected on the context. Using it on the `users` query was simply a matter of spreading the object returned from the utility function into the `opArgs` variable:
+#### Exploring
 
-<details><summary><code>utils/pagination.js</code></summary>
-<p>
+Opening up the production URL for the Prisma service in the browser spins up a GraphQL Playground instance. However, it's not very helpful because **we are not authenticated**. The schema isn't loaded (which is great!) and all we have is an empty playground, with not much for us to do.
+
+Luckily, from the Prisma Cloud UI we have a link that opens up a Playground instance with the correct authorization headers baked in 😄
+
+In the version of Prisma Cloud shown by Andrew, the UI had a **Data Browser** tab. That was replaced by a **Prisma Admin** tab, serving the same purpose though with a different interface. It gives us a nice little mix of a GraphQL query runner (like a mini playground) and a database explorer.
+
+Lastly, Prisma Cloud offers us a **Metrics** tab for monitoring requests made to our production instance and **Deployment History** tab showing us details on what was changed in each of our deployments.
+
+### Deploying our Node app
+
+The first step here was installing the Heroku CLI:
+
+```bash
+$ npm i -g heroku
+```
+
+Similar to the Prisma CLI, we have a login command: 
+
+```bash
+$ heroku login
+```
+
+After that, enabling our server to listen to the port dynamically was necessary. [`GraphQL Yoga` has an API ready for this](https://github.com/prisma/graphql-yoga#startoptions-options-callback-options-options--void----null-promisevoid):
 
 ```javascript
-export const applyPagination = args => {
-  const paginationArgs = {}
-  const { page, cursor } = args
+const server = new GraphQLServer({ ... })
 
-  if (page) {
-    const { first, skip } = page
-    paginationArgs.first = first
-    paginationArgs.skip = skip
-  }
+server.start({ port: process.env.PORT || 4000 }, () => {
+  console.log('The server is up!')
+})
+```
 
-  if (cursor) {
-    paginationArgs.after = cursor.after
-  }
+Heroku injects the `PORT` env variable when it runs our app.
 
-  return paginationArgs
+The `prisma.js` file also needed some minor tweaks. The `endpoint` value used to create our Prisma instance was also hardcoded with `http://localhost:4466`. Naturally, we need to leverage our `.env` files. `package.json` is an excellent place to do that. The `env-cmd` library was used to enable us to reference our `.env` files in our `package.json` scripts. First, our `start` script was renamed to `dev` and our `dev.env` file was loaded with it:
+
+```json
+"scripts": {
+  ...
+  "dev": "env-cmd ./config/dev.env nodemon src/index.js --ext js,graphql --exec babel-node"
 }
 ```
 
-</p>
-</details>
+```js
+const prisma = new Prisma({
+  ...
+  endpoint: process.env.PRISMA_ENDPOINT,
+})
+```
 
-<details><summary><code>Query.js</code></summary>
-<p>
+With those changes, our development server still works 😏.
 
-```javascript
-users(
-  parent,
-  args,
-  {
-    prisma,
-    pagination: { applyPagination }
-  },
-  info
-) {
-  const opArgs = { ...applyPagination(args) }
-  const { query } = args
+For production it's a bit more complicated. Usage of `babel-node` is only recommended for development purposes. Given that, we need to run our `start` script using only `node`. To do that, we need to use `babel` in a prior moment so that our `.js` files can be transpiled and executed properly by `node`. Given that we used modern features (like async/await) in our project, [there is one little gotcha](https://babeljs.io/docs/en/babel-polyfill). We need to install `@babel/polyfill` and enable it in our project by importing it in our `index.js` file, before all other imports:
 
-  if (query) {
-    opArgs.where = {
-      OR: [{ name_contains: query }, { email_contains: query }]
-    }
-  }
+```js
+import '@babel/polyfill'
+... // rest of index.js
+```
 
-  return prisma.query.users(opArgs, info)
+To inform Heroku it should use `babel` to transpile everything before actually trying to run our app, we have to create a postbuild hook in `package.json`:
+
+```json
+"scripts": {
+  ... // The name 'heroku-postbuild' must be exact!
+  "heroku-postbuild": "babel src --out-dir dist --copy-files",
 }
 ```
 
-</p>
-</details>
+We use the `--copy-files` flag so our `.graphql` files get copied over.
 
-### Sorting in the database schema
+Finally, our `start` script looks like this:
 
-In the database schema, [Prisma gives us ascending and descending sorting operators for each of the scalar fields defined in the types of our datamodel](https://www.prisma.io/docs/1.27/prisma-graphql-api/reference/queries-qwe1/#ordering).
-
-With ordering capabilities inherited from Prisma, our `Query` root type looks like this:
-
-<details><summary><code>schema.graphql</code></summary>
-<p>
-
-```graphql
-# import UserOrderByInput, PostOrderByInput, CommentOrderByInput from './generated/schema.graphql'
-
-type Query {
-  users(
-    query: String
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-    orderBy: UserOrderByInput
-  ): [User!]!
-  posts(
-    query: String
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-    orderBy: PostOrderByInput
-  ): [Post!]!
-  myPosts(
-    query: String
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-    orderBy: PostOrderByInput
-  ): [Post!]!
-  comments(
-    page: SimplePaginationInput
-    cursor: CursorPaginationInput
-    orderBy: CommentOrderByInput
-  ): [Comment!]!
-  me: User!
-  post(id: ID!): Post!
+```json
+"scripts": {
+  "start": "env-cmd ./config/prod.env node dist/index.js",
+  ...
 }
 ```
 
-</p>
-</details>
+We could stop here, but that forces us to commit our `.env` files so that the `prod.env` can be read by Heroku. To fix that, we'll supply the necessary values through Heroku itself. Our `start` script can be simplified:
 
----
-
-Leveraging the orderBy argument in our resolver is quite simple (compare it to the snippet posted above). Destructuring it from the received arguments and adding it to the operation arguments is all it takes.
-
-<details><summary><code>Query.js</code></summary>
-<p>
-
-```javascript
-users(
-  parent,
-  args,
-  {
-    prisma,
-    pagination: { applyPagination }
-  },
-  info
-) {
-  const { query, orderBy } = args
-  const opArgs = { orderBy, ...applyPagination(args) }
-
-  if (query) {
-    opArgs.where = {
-      OR: [{ name_contains: query }, { email_contains: query }]
-    }
-  }
-
-  return prisma.query.users(opArgs, info)
+```json
+"scripts": {
+  "start": "node dist/index.js",
+  ...
 }
 ```
 
-</p>
-</details>
+With all that configuration done, we can use the Heroku CLI to create our app:
+
+```bash
+$ heroku create
+```
+
+Supposedly, that command should also configure a `heroku` git remote for us. In my case, that step had to be done manually for some reason. [Following the docs was pretty straightforward](https://devcenter.heroku.com/articles/git#creating-a-heroku-remote):
+
+```bash
+$ heroku git:remote -a thawing-earth-50309
+```
+
+> `thawing-earth-50309` is the app name/ID in Heroku
+
+To tell Heroku about our `PRISMA_ENDPOINT` we use the `heroku config` CLI command:
+
+```bash
+$ heroku config:set PRISMA_ENDPOINT=https://gql-bootcamp-c33a512316.herokuapp.com/gql-bootcamp/prod --app=thawing-earth-50309
+```
+
+Running `$ git push heroku master` starts the deployment process.
