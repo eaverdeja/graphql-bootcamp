@@ -63,4 +63,3 @@ typings/
 dist
 config
 prisma/docker-compose.yml
-generated
