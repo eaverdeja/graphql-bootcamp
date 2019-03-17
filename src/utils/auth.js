@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = 'thisisasecret'
-const TOKEN_EXPIRES_IN = '7 days'
+const { JWT_SECRET } = process.env
+const { TOKEN_EXPIRES_IN } = process.env
 
 export const getUserId = (request, requireAuth = true) => {
   const { request: httpRequest, connection: socket } = request
