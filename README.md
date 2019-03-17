@@ -18,6 +18,9 @@ Eventually I'll collect all (or most of the) tools used in the course in this li
   - prisma-binding
 - graphql playground
 - graphql cli
+- jsonwebtoken
+- env-cmd
+- heroku
 
 ## Modules
 
@@ -26,3 +29,9 @@ The course is outlined in a few different modules. I've created separate branche
 - [GraphQL Basics (incomplete)](https://github.com/eaverdeja/graphql-bootcamp/tree/module/graphql-basics#graphql-bootcamp)
 - [Database Layer](https://github.com/eaverdeja/graphql-bootcamp/tree/module/prisma#graphql-bootcamp---database-layer)
 - [Authentication](https://github.com/eaverdeja/graphql-bootcamp/tree/module/authentication#graphql-bootcamp---authentication)
+- [Pagination & Sorting](https://github.com/eaverdeja/graphql-bootcamp/tree/module/pagination-and-sorting#graphql-bootcamp---pagination-and-sorting)
+- [Production Deployment](https://github.com/eaverdeja/graphql-bootcamp/tree/module/production-deployment#graphql-bootcamp---production-deployment)
+- Testing - TODO
+- Extra - TODO
+  - Prisma Client
+  - Typescript
