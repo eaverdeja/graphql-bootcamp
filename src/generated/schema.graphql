@@ -1,5 +1,5 @@
-# source: http://localhost:4466
-# timestamp: Wed Mar 13 2019 20:31:22 GMT-0300 (Brasilia Standard Time)
+# source: https://gql-bootcamp-c33a512316.herokuapp.com/gql-bootcamp/prod
+# timestamp: Sun Mar 17 2019 06:46:54 GMT-0300 (Brasilia Standard Time)
 
 type AggregateComment {
   count: Int!
@@ -281,7 +281,6 @@ input CommentUpdateManyMutationInput {
 input CommentUpdateManyWithoutAuthorInput {
   create: [CommentCreateWithoutAuthorInput!]
   connect: [CommentWhereUniqueInput!]
-  set: [CommentWhereUniqueInput!]
   disconnect: [CommentWhereUniqueInput!]
   delete: [CommentWhereUniqueInput!]
   update: [CommentUpdateWithWhereUniqueWithoutAuthorInput!]
@@ -293,7 +292,6 @@ input CommentUpdateManyWithoutAuthorInput {
 input CommentUpdateManyWithoutPostInput {
   create: [CommentCreateWithoutPostInput!]
   connect: [CommentWhereUniqueInput!]
-  set: [CommentWhereUniqueInput!]
   disconnect: [CommentWhereUniqueInput!]
   delete: [CommentWhereUniqueInput!]
   update: [CommentUpdateWithWhereUniqueWithoutPostInput!]
@@ -482,9 +480,6 @@ input CommentWhereUniqueInput {
 
 scalar DateTime
 
-"""Raw JSON value"""
-scalar Json
-
 """
 The `Long` scalar type represents non-fractional signed whole numeric values.
 Long can represent values between -(2^63) and 2^63 - 1.
@@ -510,7 +505,6 @@ type Mutation {
   deleteManyUsers(where: UserWhereInput): BatchPayload!
   deleteManyPosts(where: PostWhereInput): BatchPayload!
   deleteManyComments(where: CommentWhereInput): BatchPayload!
-  executeRaw(database: PrismaDatabase, query: String!): Json!
 }
 
 enum MutationType {
@@ -867,7 +861,6 @@ input PostUpdateManyMutationInput {
 input PostUpdateManyWithoutAuthorInput {
   create: [PostCreateWithoutAuthorInput!]
   connect: [PostWhereUniqueInput!]
-  set: [PostWhereUniqueInput!]
   disconnect: [PostWhereUniqueInput!]
   delete: [PostWhereUniqueInput!]
   update: [PostUpdateWithWhereUniqueWithoutAuthorInput!]
@@ -1103,10 +1096,6 @@ input PostWhereInput {
 
 input PostWhereUniqueInput {
   id: ID
-}
-
-enum PrismaDatabase {
-  default
 }
 
 type Query {

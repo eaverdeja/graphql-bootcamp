@@ -20,7 +20,7 @@
     "heroku-postbuild": "babel src --out-dir dist --copy-files",
     "dev": "env-cmd ./config/dev.env nodemon src/index.js --ext js,graphql --exec babel-node",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "get-schema": "graphql get-schema -p graphql-bootcamp",
+    "get-schema": "graphql get-schema -p graphql-bootcamp --dotenv config/dev.env",
     "lint:fix": "eslint ./src --fix",
     "lint:dry": "eslint ./src --fix-dry-run",
     "prettier": "prettier --config ./.prettierrc ./src/**/*.js",
