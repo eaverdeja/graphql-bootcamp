@@ -94,7 +94,7 @@ server.start({ port: process.env.PORT || 4000 }, () => {
 
 Heroku injects the `PORT` env variable when it runs our app.
 
-The `prisma.js` file also needed some minor tweaks. The `endpoint` value used to create our Prisma instance was also hardcoded with `http://localhost:4466`. Naturally, we need to leverage our `.env` files. `package.json` is an excellent place to do that. The `env-cmd` library was used to enable us to reference our `.env` files in our `package.json` scripts. First, our `start` script was renamed to `dev` and our `dev.env` file was loaded with it:
+The `prisma.js` file also needed some minor tweaks. The `endpoint` value used to create our Prisma instance was also hardcoded with `http://localhost:4466`. Naturally, we need to leverage our `.env` files. `package.json` happens to be an excellent place to do that. The `env-cmd` library was used to enable us to reference our `.env` files in our npm scripts. First, our `start` script was renamed to `dev` and our `dev.env` file was loaded with it:
 
 ```json
 "scripts": {
@@ -178,7 +178,12 @@ $ git push heroku module/production-deployment:master
 
 > The syntax used above is documented [here](https://devcenter.heroku.com/articles/git#deploying-from-a-branch-besides-master)
 
-It's worth noting a very similar process was also executed for the `PRISMA_SECRET` env variable!
+It's worth noting a very similar process was also executed for the `PRISMA_SECRET`, `JWT_SECRET` and `TOKEN_EXPIRES_IN` env variables! In a nutshell:
+
+1. Make sure `env-cmd` is installed and it's used to reference an existing env file when using it with npm scripts.
+1. Reference the constant that should be extracted using `process.env.{MY_KEYWORD}` and supply that value on the env files.
+1. Tell Heroku about it using `$ heroku config:set MY_KEYWORD=somevalue`
+
 
 ### This is never painfree
 
