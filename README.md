@@ -176,7 +176,9 @@ Running `$ git push heroku master` starts the deployment process. Note that this
 $ git push heroku module/production-deployment:master
 ```
 
-The syntax used above is documented [here](https://devcenter.heroku.com/articles/git#deploying-from-a-branch-besides-master)
+> The syntax used above is documented [here](https://devcenter.heroku.com/articles/git#deploying-from-a-branch-besides-master)
+
+It's worth noting a very similar process was also executed for the `PRISMA_SECRET` env variable!
 
 ### This is never painfree
 
